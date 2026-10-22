@@ -1,13 +1,15 @@
-// Dev test scene (steps 1.2–1.3): real content from content.js as 3D text (troika) next to a plain
-// HTML reference, plus a check that troika and A-Frame share one three.js.
+// Dev test scene (steps 1.2–1.3b): real content from content.js as 3D text next to a plain HTML
+// reference, a math-text sample, a three.js instance check and live text-texture memory.
 // Removed when the real start area is built (step 1.11).
 import AFRAME from 'aframe';
 import * as THREE from 'three';
 import { Text } from 'troika-three-text';
 import { INTRO, STATIONS, UI, TITLE, WELCOME, AUTHOR_CREDIT, MOVE_HINTS } from '../content.js';
+import { arabicFontsReady } from '../fonts.js';
+import { measureTextBlock, textTextureStats } from '../text-canvas.js';
 
 // Every word in the content that carries a mark (tanween, shadda, fatha, damma, kasra, sukun),
-// in order of first appearance. troika warned about GPOS LookupType 5, so these are the words to inspect.
+// in order of first appearance.
 const MARKS = /[ً-ْ]/;
 function markedWords() {
   const all = [
@@ -37,6 +39,7 @@ const BOARDS = [
       { value: 'كلمات فيها تنوين وشدّة وحركات', fontSize: 0.1, weight: 'bold' },
       { value: markedWords().join('   '), fontSize: 0.12 },
     ],
+    math: STATIONS[5].formula, // station 6 (aˣ); Fira Sans has no subscript ₐ for station 5, see CLAUDE.md
   },
   {
     id: 'functions',
@@ -51,6 +54,9 @@ const BOARDS = [
 const BOARD_W = 2.4;
 const BOARD_H = 1.9;
 const PAD = 0.12;
+
+// Rough station panel layout (the real one is designed in step 2.3), only for the memory estimate.
+const PANEL_ESTIMATE = { maxWidth: 1.3, name: 0.12, subtitle: 0.08, body: 0.055, quote: 0.06 };
 
 function threeCheck() {
   const sameModule = AFRAME.THREE.Mesh === THREE.Mesh;
@@ -74,19 +80,44 @@ function build3D(scene) {
     plane.setAttribute('position', '0 0 -0.01');
     root.appendChild(plane);
 
-    // Stack lines from the top; each line starts where the previous one ended (troika gives the size).
     let y = BOARD_H / 2 - PAD;
     board.lines.forEach((line, i) => {
       const el = document.createElement('a-entity');
       el.setAttribute('position', `${BOARD_W / 2 - PAD} ${y} 0`);
       el.setAttribute('arabic-text', { ...line, maxWidth: BOARD_W - 2 * PAD, anchorX: 'right', anchorY: 'top' });
-      // Simple fixed spacing is enough for a test board: title gets one line, body the rest.
       y -= i === 0 ? line.fontSize * 1.8 : 0;
-      el.addEventListener('textsync', () => console.info(`[dev] ${board.id} line ${i + 1} ready`));
+      el.addEventListener('textsync', (e) => {
+        console.info(`[dev] ${board.id} line ${i + 1} ready (${e.detail.width.toFixed(2)} × ${e.detail.height.toFixed(2)} m)`);
+      });
       root.appendChild(el);
     });
+
+    if (board.math) {
+      const el = document.createElement('a-entity');
+      el.setAttribute('position', `0 ${-BOARD_H / 2 - 0.08} 0`);
+      el.setAttribute('math-text', { value: board.math, fontSize: 0.1, anchorY: 'top' });
+      root.appendChild(el);
+    }
     scene.appendChild(root);
   }
+}
+
+const MB = (bytes) => (bytes / (1024 * 1024)).toFixed(1);
+
+function stationPanelEstimate() {
+  const e = PANEL_ESTIMATE;
+  const base = { color: '#3B1F2B', maxWidth: e.maxWidth, align: 'right', direction: 'rtl', lineHeight: 1.5, weight: 'regular' };
+  const perStation = STATIONS.map((s) =>
+    [
+      { ...base, value: s.name, fontSize: e.name, weight: 'bold' },
+      { ...base, value: s.subtitle, fontSize: e.subtitle },
+      { ...base, value: s.math, fontSize: e.body },
+      { ...base, value: s.life, fontSize: e.body },
+      { ...base, value: s.quote, fontSize: e.quote },
+    ].reduce((sum, p) => sum + measureTextBlock(p).bytes, 0),
+  );
+  const all = perStation.reduce((a, b) => a + b, 0);
+  return { all, max: Math.max(...perStation) };
 }
 
 function buildHtmlReference(check) {
@@ -108,6 +139,22 @@ function buildHtmlReference(check) {
   status.dir = 'ltr';
   status.textContent = `${check.ok ? '✔ one three.js' : '✘ two three.js copies'} — ${check.detail}`;
   box.appendChild(status);
+
+  const mem = document.createElement('p');
+  mem.className = 'dev-ok';
+  mem.dir = 'ltr';
+  box.appendChild(mem);
+  arabicFontsReady().then(() => {
+    const est = stationPanelEstimate();
+    const update = () => {
+      const s = textTextureStats();
+      mem.textContent =
+        `Arabic text textures now: ${s.count} · ${MB(s.bytes)} MB | ` +
+        `est. station panels: all 10 = ${MB(est.all)} MB, largest one = ${MB(est.max)} MB`;
+    };
+    update();
+    setInterval(update, 1000);
+  });
   document.body.appendChild(box);
 }
 
@@ -116,6 +163,5 @@ export function runArabicTest() {
   build3D(scene);
   const check = threeCheck();
   console.info('[dev]', check.detail);
-  console.info('[dev] marked words:', markedWords().length);
   buildHtmlReference(check);
 }

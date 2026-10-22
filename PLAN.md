@@ -43,6 +43,10 @@ Goal: open it on laptop and phone and walk around Jebel Tuwaiq at sunset, with c
   Intro texts, 10 stations (name, formula, subtitle, math, life, quote), UI strings, movement hints, author credit. Plus a small script `npm run check:content` that confirms every string matches `PROJECT_BRIEF.md` exactly.
   *Test:* 💻 `npm run check:content` prints "all match". The test scene shows the intro panel text loaded from `content.js`.
 
+- [x] **1.3b Canvas rendering for all Arabic text** *(added after 1.3: troika misplaces a damma on word-initial ت/ب/ي)*
+  `arabic-text` keeps the same API but draws with a 2D canvas (browser shaping) into a texture: waits for Tajawal via `document.fonts.load`, sizes the canvas to the text block, mipmaps + anisotropic filtering, a resolution chosen for VR reading distance, a shared cache (redraw only when the text changes, dispose unused textures), and optional near-only creation (`activeDistance`) for the phone memory budget. troika stays only for Latin math formulas (new `math-text` component, Fira Sans).
+  *Test:* 💻📱 the marks board matches the HTML reference for every word, especially «تُعدّ», «بُعد», «تُمثَّل», «يُسمّى»; text is sharp up close and readable from a few metres; the dev panel shows the texture memory total.
+
 - [ ] **1.4 Sky, sun, fog and lights**
   Gradient sky (`#F7C98B` → `#E9A9B8` → `#B59AB8`), low sun disc on the horizon, fog matching the horizon colour, one directional light (sun) + one hemisphere light.
   *Test:* 💻📱 look around: warm gold at the horizon, pink above, mauve at the top, sun low on one side, distant objects fade into the fog.
