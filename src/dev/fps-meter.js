@@ -3,6 +3,7 @@
 // level (reloads the page with ?quality=…).
 import AFRAME from 'aframe';
 import { quality, LEVELS } from '../quality.js';
+import { journey } from '../time-of-day.js';
 
 AFRAME.registerComponent('fps-meter', {
   init() {
@@ -35,7 +36,8 @@ AFRAME.registerComponent('fps-meter', {
     this.box.textContent =
       `${fps.toFixed(0)} fps · worst ${this.worst.toFixed(0)} ms\n` +
       `${Math.round(info.triangles / 1000)}k tris · ${info.calls} calls · px ${ratio}\n` +
-      `quality ${quality.level} (${quality.source}, ${quality.device}) ⟳`;
+      `quality ${quality.level} (${quality.source}, ${quality.device}) ⟳\n` +
+      `time ${journey.value.toFixed(2)}`;
     this.box.classList.toggle('dev-fps-slow', fps < 30);
     this.frames = 0;
     this.worst = 0;

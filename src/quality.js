@@ -7,9 +7,9 @@ export const LEVELS = ['low', 'medium', 'high'];
 
 // Settings per level. Later effects (particles, clouds, rays…) add their own entries here.
 const SETTINGS = {
-  low: { maxPixelRatio: 1, terrainStep: 6, paperSize: 256, wadiSize: 512 },
-  medium: { maxPixelRatio: 1.5, terrainStep: 4, paperSize: 256, wadiSize: 1024 },
-  high: { maxPixelRatio: 2, terrainStep: 3, paperSize: 512, wadiSize: 2048 },
+  low: { maxPixelRatio: 1, terrainStep: 6, paperSize: 256, wadiSize: 512, skySparkles: false },
+  medium: { maxPixelRatio: 1.5, terrainStep: 4, paperSize: 256, wadiSize: 1024, skySparkles: true },
+  high: { maxPixelRatio: 2, terrainStep: 3, paperSize: 512, wadiSize: 2048, skySparkles: true },
 };
 
 const DEFAULT_FOR_DEVICE = { desktop: 'high', phone: 'medium', headset: 'medium' };

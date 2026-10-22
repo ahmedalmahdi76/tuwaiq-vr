@@ -70,7 +70,7 @@ Goal: the start area at its **final look** (brief §11). Every station later cop
   One small tiling paper-grain texture, generated once in code and shared, laid over the terrain and the sky with soft colour variation so nothing looks flat or digital. Also includes the reference-slide changes: receding ridges, clearer branching riverbeds and cooler patches on the plain, mauve haze low down, thinner cliff layers, deeper cracks and a pale cap rock.
   *Test:* 💻📱 up close the ground looks like painted paper; no visible tiling pattern at eye height; fps unchanged with `?stats`.
 
-- [ ] **V.3 Time-of-day system**
+- [x] **V.3 Time-of-day system**
   A single `journey` value from 0 to 1 drives everything: golden sunset (0) → deeper pink and purple (≈0.5) → starry night (1). The sky gradient, sun height (it sets), fog colour and distance, light colours and a star field all follow it, using only uniform and colour changes. Text and panels stay readable at night. Dev controls: `?time=0.6` and the `[` / `]` keys to scrub.
   *Test:* 💻📱 scrub from 0 to 1: smooth change with no stutter, the sun sinks, stars fade in at night, the ground is still visible.
 

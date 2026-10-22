@@ -76,7 +76,7 @@ function build3D(scene) {
     const plane = document.createElement('a-plane');
     plane.setAttribute('width', BOARD_W);
     plane.setAttribute('height', BOARD_H);
-    plane.setAttribute('color', '#F6E3EA');
+    plane.setAttribute('material', 'shader: flat; color: #F6E3EA'); // unlit: same paper colour at every time of day
     plane.setAttribute('position', '0 0 -0.01');
     root.appendChild(plane);
 

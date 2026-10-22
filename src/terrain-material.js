@@ -8,12 +8,12 @@
 import * as THREE from 'three';
 import { paperTexture } from './paper-texture.js';
 import { wadiTexture, WADI_RECT } from './wadi-texture.js';
-import { HAZE } from './world-config.js';
+import { HAZE, TIME_KEYS } from './world-config.js';
 import { PLAIN_Y } from './terrain.js';
 
 export const terrainUniforms = {
   uPaper: { value: null },
-  uHazeLow: { value: new THREE.Color(HAZE.low) },
+  uHazeLow: { value: new THREE.Color(TIME_KEYS[0].haze) }, // re-tinted by the time of day
   uHazeY: { value: new THREE.Vector2(PLAIN_Y + 10, PLAIN_Y + 110) }, // mauve below .x, fog colour above .y
   uLowHaze: { value: HAZE.lowExtra }, // extra haze close to the plain
 };
