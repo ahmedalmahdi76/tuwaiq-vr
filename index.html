@@ -11,12 +11,11 @@
       <a-entity tuwaiq-terrain></a-entity>
       <a-entity trail-path></a-entity>
 
-      <!-- Player rig. Temporary fly controls until step 1.7 adds real movement. -->
-      <a-entity id="rig">
+      <!-- Player rig: walking (player-move) on desktop. Camera at eye height 1.6 m. -->
+      <a-entity id="rig" player-move>
         <a-entity
           camera="near: 0.1; far: 6000"
-          look-controls
-          wasd-controls="fly: true; acceleration: 300"
+          look-controls="pointerLockEnabled: true"
           position="0 1.6 0"
         ></a-entity>
       </a-entity>

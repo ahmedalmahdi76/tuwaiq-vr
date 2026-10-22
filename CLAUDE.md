@@ -42,6 +42,7 @@ Browser VR/3D experience «حين تتحدث الدوال بلغة المشاع�
   - Slide-based changes: 3 receding ridges on the plain (`RIDGES` in terrain.js), cream cap rock + 10 layers + narrow clefts (`CLEFT_DEPTH`) in the cliff, cooler grey-brown patches on the plain.
 - **Trail** (step A.1): [src/trail.js](src/trail.js) (pure data): `TRAIL` polyline (2 m samples, arc length `s`) 8 m behind the most inland rim point within ±30 m (never runs onto a headland), then a spur out to the lookout headland at x 520. `pointAt(s)`, `STATIONS_ON_TRAIL` (stations every 45 m from s 55, set 3.5 m toward the cliff; each has `trail` standing point, `x/y/z`, `faceYaw` toward the path), `LOOKOUT`, `TRAIL_START` (spawn, s 6). Trail 555 m, max slope 10%, ≥ 4 m from the rim.
   - [src/components/trail-path.js](src/components/trail-path.js): soft-edged sandy ribbon draped 7 cm above `terrainHeight` (3 verts across, polygonOffset), placeholder markers (post + unlit numbered plate, `data-station=N`, lookout ring + «أنشطة ختامية»). `STATION_COLORS` / `stationTheme(n)` live here for now. [src/components/face-player.js](src/components/face-player.js): smooth yaw-only billboard.
+- **Movement** (step A.2): [src/components/player-move.js](src/components/player-move.js) on `#rig` (camera child at y 1.6, `look-controls="pointerLockEnabled: true"`). WASD/arrows 3.5 m/s, Shift 6; direction from the camera yaw; feet ease to `terrainHeight` (rate 12/s). `clampToCliff` keeps ≥ 2 m from the nearest rim point (searched ±10 m) and slides along it; `clampToWorld`. `standingSpot(n|'end')` = 4 m in front of the station (along its `faceYaw`), facing it; used by `?station=`. F toggles fly (30 m/s, Shift 90, no limits). `teleport()`, `look()`, `setMode()` are the API (dev presets use them). **Don't use getters in A-Frame component definitions** (A-Frame evaluates them at registration).
   - Camera `near: 0.1; far: 6000` (A-Frame's default near 0.005 would z-fight at kilometre distances).
   - Sky colours are passed as `THREE.Color` uniforms (linear) and the shader ends with `colorspace_fragment`, so they match the hex values on screen.
 
@@ -55,8 +56,8 @@ Browser VR/3D experience «حين تتحدث الدوال بلغة المشاع�
 - `src/fonts.js`: font URLs + `arabicFontsReady()`. `src/styles.css`: HTML overlay styles.
 - `src/world-config.js`: sky / sun / fog / light values.
 - `src/noise.js`: deterministic value noise / fBm / smoothstep. `src/terrain.js`: terrain math.
-- `src/dev/`: temporary dev helpers. `arabic-test.js` = Arabic text boards with HTML reference + texture memory, only with `?text` (remove in 1.11). `fps-meter.js` = `?stats` overlay (fps, worst frame, triangles, draw calls, pixel ratio, quality, journey time; tap to cycle quality); uses the scene tick so it works in VR. `time-controls.js` = `?time=0.6`, `?time=cycle` (60 s loop for phones), keys `[` `]`, and `window.setJourney` for the console / screenshots. `camera-presets.js` = fly-camera viewpoints `?cam=spawn|edge|aerial|below|trail`, keys 1–5 (replace when movement exists, A.2).
-- `index.html`: `#rig` holds the camera; temporary `wasd-controls="fly: true"` until 1.7.
+- `src/dev/`: temporary dev helpers. `arabic-test.js` = Arabic text boards with HTML reference + texture memory, only with `?text` (remove in 1.11). `fps-meter.js` = `?stats` overlay (fps, worst frame, triangles, draw calls, pixel ratio, quality, journey time; tap to cycle quality); uses the scene tick so it works in VR. `time-controls.js` = `?time=0.6`, `?time=cycle` (60 s loop for phones), keys `[` `]`, and `window.setJourney` for the console / screenshots. `camera-presets.js` = viewpoints `?cam=edge|aerial|below|trail`, keys 1–5 (1 = walk at the start, others switch to fly).
+- `index.html`: `#rig` (player-move) holds the camera.
 - `assets/`: fonts (Tajawal for Arabic, Fira Sans for math formulas; Cairo unused). Audio/images may be added later and must stay optional.
 
 ## Decisions
@@ -75,6 +76,7 @@ See the "Decisions" table in `PLAN.md`.
 - Step V.4 done: golden dust → fireflies, sky-coloured clouds, sun rays that fade at sunset.
 - **Priority change after V.4: content first (phases A–E), visual polish later (phase F).** Steps were renamed; old numbers are noted in PLAN.md.
 - Step A.1 done: trail along the cliff + numbered station markers + lookout marker. Dev camera key 5 / `?cam=trail` = overview.
+- Step A.2 done: desktop walking, cliff boundary with sliding, ?station=N|end, F = fly.
 - Agreed for later: time of day follows the **furthest** point reached (F.6); the opening is skippable by tap/click/key and may show the label «تخطٍّ» in a corner (F.7; user-provided text; add it to content.js and the brief's UI strings then).
 
 ## Checking visuals without the user

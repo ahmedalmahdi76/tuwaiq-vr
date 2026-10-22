@@ -1,5 +1,6 @@
-// Dev only (step 1.5, until movement exists in 1.7): place the fly camera at the spawn or at a
-// preset viewpoint. URL: ?cam=spawn|edge|aerial|below|trail. Keys 1–5 switch on desktop.
+// Dev only: jump to preset viewpoints. URL ?cam=edge|aerial|below|trail, keys 1–5.
+// Key 1 / spawn = walking at the start of the trail; the others switch to the fly camera
+// (F toggles back to walking). The normal start position is handled by player-move.
 import { PLAIN_Y, edgeZ, plateauHeight } from '../terrain.js';
 import { TRAIL_START } from '../trail.js';
 
@@ -7,7 +8,7 @@ function presets() {
   const hx = 140; // a headland
   return {
     // Start of the trail, facing the cliff edge and the sunset
-    spawn: { pos: [TRAIL_START.x, TRAIL_START.y, TRAIL_START.z], yaw: 0, pitch: -0.05 },
+    spawn: { walk: true, pos: [TRAIL_START.x, 0, TRAIL_START.z], yaw: 0, pitch: -0.05 },
     // On the tip of a headland, looking back along the layered cliff face
     edge: { pos: [hx, plateauHeight(hx, edgeZ(hx) + 2), edgeZ(hx) + 2], yaw: 1.25, pitch: -0.3 },
     // High above the plateau, looking out over the rim and the plain
@@ -22,22 +23,28 @@ function presets() {
 export function setupCameraPresets() {
   const scene = document.querySelector('a-scene');
   const rig = document.querySelector('#rig');
-  const camera = document.querySelector('[camera]');
   const all = presets();
 
   const go = (name) => {
     const p = all[name];
-    if (!p) return;
-    rig.object3D.position.set(...p.pos);
-    camera.object3D.position.set(0, 1.6, 0);
-    const lc = camera.components['look-controls'];
-    lc.yawObject.rotation.y = p.yaw;
-    lc.pitchObject.rotation.x = p.pitch;
+    const mover = rig.components['player-move'];
+    if (!p || !mover) return;
+    if (p.walk) {
+      mover.teleport(p.pos[0], p.pos[2], p.yaw);
+    } else {
+      mover.setMode('fly');
+      rig.object3D.position.set(...p.pos);
+      mover.look(p.yaw, p.pitch);
+    }
   };
 
-  const start = () => go(new URLSearchParams(location.search).get('cam') || 'spawn');
-  if (scene.hasLoaded) start();
-  else scene.addEventListener('loaded', start);
+  const cam = new URLSearchParams(location.search).get('cam');
+  if (cam) {
+    // after player-move has placed the player
+    const start = () => setTimeout(() => go(cam), 0);
+    if (scene.hasLoaded) start();
+    else scene.addEventListener('loaded', start, { once: true });
+  }
 
   const keys = { Digit1: 'spawn', Digit2: 'edge', Digit3: 'aerial', Digit4: 'below', Digit5: 'trail' };
   window.addEventListener('keydown', (e) => keys[e.code] && go(keys[e.code]));

@@ -10,6 +10,7 @@ import './components/atmosphere.js';
 import './components/tuwaiq-terrain.js';
 import './components/face-player.js';
 import './components/trail-path.js';
+import './components/player-move.js';
 import { runArabicTest } from './dev/arabic-test.js';
 import { setupCameraPresets } from './dev/camera-presets.js';
 import { setupFpsMeter } from './dev/fps-meter.js';

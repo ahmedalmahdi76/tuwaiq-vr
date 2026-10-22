@@ -54,7 +54,7 @@ Legend for test notes: 💻 laptop · 📱 phone (same Wi-Fi, `https://<laptop-L
   The trail waypoints (start → 1 … 10 → closing lookout) running near the cliff edge, in one data list, spaced so walking between stations takes about 10–15 s. A lighter path drawn on the ground. A simple numbered marker at each of the 10 station positions (pink odd / purple even) plus a marker at the closing lookout. Plain markers are fine for now.
   *Test:* 💻 fly along the trail (keys 1–4, WASD): it follows the edge with the view always there; 10 numbered markers plus the lookout, in order.
 
-- [ ] **A.2 Desktop movement with terrain following** *(was 1.7)*
+- [x] **A.2 Desktop movement with terrain following** *(was 1.7)*
   WASD + arrows, Shift to walk faster, mouse drag to look, click for pointer lock, Esc to release. Eye height follows `terrainHeight` smoothly. Invisible boundary at the cliff edge and the world edge. Replaces the fly camera. Dev shortcut: `?station=N` starts in front of station N, `?station=end` at the closing lookout.
   *Test:* 💻 walk between two stations in about 10–15 s; up and down slopes without sinking or floating; you can't walk off the cliff; `?station=5` starts in front of marker 5.
 
