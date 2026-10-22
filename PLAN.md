@@ -22,9 +22,9 @@ Legend for test notes: 💻 laptop · 📱 phone (same Wi-Fi, `https://<laptop-L
 | A5 | Visited state | Resets on every page load. |
 | A6 | Station 9 ranges | a: −2 → 2 step 0.5 (skipping 0), b: −2 → 2 step 0.5, c: −2 → 2 step 0.5. |
 | A7 | Station 2 "semi-transparent ground" | A **translucent glowing glass patch** set into the ground, with the roots visible below it. |
-| A8 | Git | `git init` in step 1.1; one commit per finished step. The GitHub repo is needed in step 1.13. |
+| A8 | Git | `git init` in step 1.1; one commit per finished step. GitHub / deploy is **on hold**: see "Later" at the end of this plan. |
 | A9 | Shared three.js | troika-three-text imports `three`. A Vite alias points `three` at the **same npm package A-Frame depends on** (checked in `node_modules/aframe/package.json`, expected `super-three`), so troika and A-Frame share one copy. Verified in step 1.2 before anything else depends on it. |
-| A10 | Test devices | *To fill in:* which phones / headsets you have. Until then, test notes list every device type. |
+| A10 | Test devices | **Android phone (Chrome) + Immersive Web Emulator in Chrome.** No iPhone, no Quest. iOS support and real-headset support are still built as the brief requires, but test notes only list 💻, 📱 Android and 🥽 emulator. |
 
 ---
 
@@ -35,7 +35,7 @@ Goal: open it on laptop and phone and walk around Jebel Tuwaiq at sunset, with c
   Vite (vanilla JS), A-Frame, `@vitejs/plugin-basic-ssl`, all versions pinned exactly. `vite.config.js` with `server.host = true` and `base` read from an env variable (default `/`). `index.html` with an empty `<a-scene>` and one test box. `git init`, `.gitignore`, first version of `CLAUDE.md`.
   *Test:* 💻 `npm run dev`, open `https://localhost:5173`, see the box. 📱 open the LAN URL printed in the terminal, accept the certificate warning, see the box.
 
-- [ ] **1.2 `arabic-text` component (Arabic rendering proof)**
+- [x] **1.2 `arabic-text` component (Arabic rendering proof)**
   First, set up the `three` alias (A9) and confirm only one three.js copy is loaded (no "Multiple instances of Three.js" warning, and troika's objects render inside the A-Frame scene). Then wrap troika-three-text in an A-Frame component (`value, fontSize, color, maxWidth, align, direction, anchorX, anchorY`) using Tajawal. Test scene shows the title, one long quote with «» and punctuation, Arabic-Indic digits, and mixed Arabic + `f(x)`. A plain HTML version of the same lines sits beside it for comparison. If troika fails, switch to the canvas-texture fallback. I will tell you which approach we kept.
   *Test:* 💻 DevTools console has no duplicate-three.js warning. 💻📱 letters are joined, words are in right-to-left order, punctuation at the correct end, and the 3D text matches the HTML reference.
 
@@ -78,10 +78,6 @@ Goal: open it on laptop and phone and walk around Jebel Tuwaiq at sunset, with c
 - [ ] **1.12 Phase 1 checkpoint**
   Update `CLAUDE.md` (how to run, structure, decisions so far). Quick review on laptop and phone; list anything to adjust before Phase 2.
   *Test:* 💻📱 full walk from the start area to the last placeholder pillar.
-
-- [ ] **1.13 Early GitHub Pages deploy** *(moved here from 6.5)*
-  `.github/workflows/deploy.yml` builds with the correct `base` (repo sub-path) and deploys on every push to `main`. I give you the exact repo settings (Pages → Source → GitHub Actions) and the push commands. Deploy the Phase 1 version.
-  *Test:* open `https://<user>.github.io/<repo>/` on laptop and phone: fonts load, no 404s in the console, motion sensors work over HTTPS, `?station=5` works on the live link.
 
 ---
 
@@ -249,10 +245,19 @@ One station per step. Each step: terrain landmark + any special objects + parame
   Chrome, Edge, Firefox, Safari (desktop); fix anything broken.
   *Test:* 💻 full walkthrough in each browser.
 
-- [ ] **6.5 Final deploy check**
-  The workflow already exists (step 1.13). Push the final version, confirm the Action succeeds, and check the live build (narration files, if added, are included).
+- [ ] **6.5 Final deploy check** *(only after L.1 is done; skip otherwise)*
+  Push the final version, confirm the Action succeeds, and check the live build (narration files, if added, are included).
   *Test:* open the public `https://<user>.github.io/<repo>/` link on laptop and phone; everything loads, including fonts and any audio.
 
 - [ ] **6.6 QR code + final device check**
-  How to make a QR code for the final link. Final checklist on laptop, Android, iPhone and (if available) a Quest. Final `CLAUDE.md` update.
+  How to make a QR code for the final link. Final checklist on laptop, Android phone and the VR emulator (see A10). Final `CLAUDE.md` update.
   *Test:* scan the QR with a phone, open the experience and complete it end to end.
+
+---
+
+## Later — do only when you bring it up
+Skipped in the normal order. Don't ask about GitHub until you raise it.
+
+- [ ] **L.1 GitHub Pages deploy** *(was step 1.13)*
+  `.github/workflows/deploy.yml` builds with the correct `base` (repo sub-path) and deploys on every push to `main`. I give you the exact repo settings (Pages → Source → GitHub Actions) and the push commands. Deploy whatever version we have at that point.
+  *Test:* open `https://<user>.github.io/<repo>/` on laptop and phone: fonts load, no 404s in the console, motion sensors work over HTTPS, `?station=5` works on the live link.
