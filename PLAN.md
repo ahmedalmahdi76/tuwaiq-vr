@@ -50,7 +50,7 @@ Legend for test notes: 💻 laptop · 📱 phone (same Wi-Fi, `https://<laptop-L
 
 ## Phase A — Walk the trail (laptop)
 
-- [ ] **A.1 Trail waypoints + station markers** *(was 1.6)*
+- [x] **A.1 Trail waypoints + station markers** *(was 1.6)*
   The trail waypoints (start → 1 … 10 → closing lookout) running near the cliff edge, in one data list, spaced so walking between stations takes about 10–15 s. A lighter path drawn on the ground. A simple numbered marker at each of the 10 station positions (pink odd / purple even) plus a marker at the closing lookout. Plain markers are fine for now.
   *Test:* 💻 fly along the trail (keys 1–4, WASD): it follows the edge with the view always there; 10 numbered markers plus the lookout, in order.
 

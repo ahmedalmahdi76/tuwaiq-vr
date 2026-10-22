@@ -40,6 +40,8 @@ Browser VR/3D experience «حين تتحدث الدوال بلغة المشاع�
   - Meshes in [src/components/tuwaiq-terrain.js](src/components/tuwaiq-terrain.js): near plateau band (0–150 m inland, 4 m columns in x −150…800), far plateau (coarse, overlaps 5 m, sunk 0.4 m), cliff curtain (8 strata layers with ledges/undercuts, noise columns, scree slope), plain (60 m grid). One shared flat-shaded vertex-colour MeshStandardMaterial. ~76k triangles total, built in <100 ms. World spans x −3000…3400 so the ends hide in the fog.
   - **Watercolour look (V.2):** [src/paper-texture.js](src/paper-texture.js) = one shared tileable texture generated in code (R = paper grain, G = washes with faint tide lines; 512² high, 256² medium/low; ~0.4 s at 512² on a laptop, so keep it small). [src/terrain-material.js](src/terrain-material.js) patches MeshStandardMaterial via `onBeforeCompile`: paper grain (3 m tile) + washes (70 m) sampled along the flat face's dominant axis, thin strata lines by height on steep faces, optional painted overlay on the plain, and **height haze** (fog colour mauve `HAZE.low` near the plain → gold above; low ground hazes sooner). Shared uniforms in `terrainUniforms` for V.3. [src/wadi-texture.js](src/wadi-texture.js) paints branching riverbeds + cool/warm patches once (seeded) over `WADI_RECT`; the sky shader also uses the paper texture (explicit `textureLod` to avoid the azimuth seam).
   - Slide-based changes: 3 receding ridges on the plain (`RIDGES` in terrain.js), cream cap rock + 10 layers + narrow clefts (`CLEFT_DEPTH`) in the cliff, cooler grey-brown patches on the plain.
+- **Trail** (step A.1): [src/trail.js](src/trail.js) (pure data): `TRAIL` polyline (2 m samples, arc length `s`) 8 m behind the most inland rim point within ±30 m (never runs onto a headland), then a spur out to the lookout headland at x 520. `pointAt(s)`, `STATIONS_ON_TRAIL` (stations every 45 m from s 55, set 3.5 m toward the cliff; each has `trail` standing point, `x/y/z`, `faceYaw` toward the path), `LOOKOUT`, `TRAIL_START` (spawn, s 6). Trail 555 m, max slope 10%, ≥ 4 m from the rim.
+  - [src/components/trail-path.js](src/components/trail-path.js): soft-edged sandy ribbon draped 7 cm above `terrainHeight` (3 verts across, polygonOffset), placeholder markers (post + unlit numbered plate, `data-station=N`, lookout ring + «أنشطة ختامية»). `STATION_COLORS` / `stationTheme(n)` live here for now. [src/components/face-player.js](src/components/face-player.js): smooth yaw-only billboard.
   - Camera `near: 0.1; far: 6000` (A-Frame's default near 0.005 would z-fight at kilometre distances).
   - Sky colours are passed as `THREE.Color` uniforms (linear) and the shader ends with `colorspace_fragment`, so they match the hex values on screen.
 
@@ -47,12 +49,13 @@ Browser VR/3D experience «حين تتحدث الدوال بلغة المشاع�
 - `index.html`: the `<a-scene>`.
 - `src/main.js`: entry; imports A-Frame, styles, components.
 - `src/content.js`: all Arabic content (verbatim from the brief) + `toArabicDigits`, `visitedText`. `npm run check:content` ([scripts/check-content.mjs](scripts/check-content.mjs)) parses the brief and compares every string both ways, character by character; run it after any edit to content or brief.
-- `src/components/`: A-Frame components (`arabic-text`, `math-text`).
+- `src/components/`: A-Frame components (`arabic-text`, `math-text`, `world-environment`, `atmosphere`, `tuwaiq-terrain`, `trail-path`, `face-player`).
+- `src/trail.js`: trail + stop positions.
 - `src/text-canvas.js`: canvas drawing, texture cache, memory stats for Arabic text.
 - `src/fonts.js`: font URLs + `arabicFontsReady()`. `src/styles.css`: HTML overlay styles.
 - `src/world-config.js`: sky / sun / fog / light values.
 - `src/noise.js`: deterministic value noise / fBm / smoothstep. `src/terrain.js`: terrain math.
-- `src/dev/`: temporary dev helpers. `arabic-test.js` = Arabic text boards with HTML reference + texture memory, only with `?text` (remove in 1.11). `fps-meter.js` = `?stats` overlay (fps, worst frame, triangles, draw calls, pixel ratio, quality, journey time; tap to cycle quality); uses the scene tick so it works in VR. `time-controls.js` = `?time=0.6`, `?time=cycle` (60 s loop for phones), keys `[` `]`, and `window.setJourney` for the console / screenshots. `camera-presets.js` = fly-camera viewpoints `?cam=spawn|edge|aerial|below`, keys 1–4 (remove when movement exists, 1.7).
+- `src/dev/`: temporary dev helpers. `arabic-test.js` = Arabic text boards with HTML reference + texture memory, only with `?text` (remove in 1.11). `fps-meter.js` = `?stats` overlay (fps, worst frame, triangles, draw calls, pixel ratio, quality, journey time; tap to cycle quality); uses the scene tick so it works in VR. `time-controls.js` = `?time=0.6`, `?time=cycle` (60 s loop for phones), keys `[` `]`, and `window.setJourney` for the console / screenshots. `camera-presets.js` = fly-camera viewpoints `?cam=spawn|edge|aerial|below|trail`, keys 1–5 (replace when movement exists, A.2).
 - `index.html`: `#rig` holds the camera; temporary `wasd-controls="fly: true"` until 1.7.
 - `assets/`: fonts (Tajawal for Arabic, Fira Sans for math formulas; Cairo unused). Audio/images may be added later and must stay optional.
 
@@ -71,6 +74,7 @@ See the "Decisions" table in `PLAN.md`.
 - Step V.3 done: time-of-day system (sunset → rose → purple dusk → indigo night with moon and stars).
 - Step V.4 done: golden dust → fireflies, sky-coloured clouds, sun rays that fade at sunset.
 - **Priority change after V.4: content first (phases A–E), visual polish later (phase F).** Steps were renamed; old numbers are noted in PLAN.md.
+- Step A.1 done: trail along the cliff + numbered station markers + lookout marker. Dev camera key 5 / `?cam=trail` = overview.
 - Agreed for later: time of day follows the **furthest** point reached (F.6); the opening is skippable by tap/click/key and may show the label «تخطٍّ» in a corner (F.7; user-provided text; add it to content.js and the brief's UI strings then).
 
 ## Checking visuals without the user
