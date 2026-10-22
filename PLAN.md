@@ -25,6 +25,8 @@ Legend for test notes: 💻 laptop · 📱 phone (same Wi-Fi, `https://<laptop-L
 | A8 | Git | `git init` in step 1.1; one commit per finished step. GitHub / deploy is **on hold**: see "Later" at the end of this plan. |
 | A9 | Shared three.js | troika-three-text imports `three`. A Vite alias points `three` at the **same npm package A-Frame depends on** (checked in `node_modules/aframe/package.json`, expected `super-three`), so troika and A-Frame share one copy. Verified in step 1.2 before anything else depends on it. |
 | A10 | Test devices | **Android phone (Chrome) + Immersive Web Emulator in Chrome.** No iPhone, no Quest. iOS support and real-headset support are still built as the brief requires, but test notes only list 💻, 📱 Android and 🥽 emulator. |
+| A11 | Art direction | Brief §11 is the visual target and wins over §3/§4/§8 where they differ. Glow, watercolour, particles and lanterns use only cheap tricks, and every effect has a quality setting. Phase 1.5 sets the look; you approve it before continuing. |
+| A12 | New Arabic text | No new visible Arabic text is invented. Anything that would need new words (e.g. a "skip" label) uses an icon or a gesture instead, unless you give me the exact text. |
 
 ---
 
@@ -51,13 +53,54 @@ Goal: open it on laptop and phone and walk around Jebel Tuwaiq at sunset, with c
   Gradient sky (`#F7C98B` → `#E9A9B8` → `#B59AB8`), low sun disc on the horizon, fog matching the horizon colour, one directional light (sun) + one hemisphere light.
   *Test:* 💻📱 look around: warm gold at the horizon, pink above, mauve at the top, sun low on one side, distant objects fade into the fog.
 
-- [ ] **1.5 Terrain: `terrainHeight(x, z)` + plateau mesh with cliff edge**
-  Height function for a low-poly plateau with a dramatic cliff on one side and a wide desert plain far below. Flat-shaded mesh in sand, rose and terracotta tones, coloured by height/slope. Built so stations can add local shapes to it later.
-  *Test:* 💻 a temporary fly camera (keyboard) shows the plateau, the cliff edge, and the plain below. No gaps or spikes in the mesh.
+- [ ] **1.5 Terrain: `terrainHeight(x, z)` + plateau mesh with cliff edge** *(final art, not a placeholder)*
+  Height function for a low-poly plateau with a dramatic cliff on one side and a wide desert plain far below. Flat-shaded mesh in the slide palette: sand, rose and terracotta, with Tuwaiq's horizontal rock layers as soft colour bands down the cliff face and gentle colour blotches on top (vertex colours, no extra textures yet). Built so stations can add local shapes to it later. Fog distances are tuned here against the real cliff view. Removes the flat test floor and pillars from 1.4.
+  *Test:* 💻📱 a temporary fly camera (keyboard / drag) shows the plateau, the layered cliff and the plain below fading into the haze. No gaps or spikes in the mesh. It already looks like a place, not a test.
 
-- [ ] **1.6 Trail layout + placeholder station markers**
-  Define the trail waypoints (start → 1 … 10 → closing lookout) running near the cliff edge, in one data list. Draw the lighter trail on the ground. Put a simple numbered pillar at each station position, in alternating pink / purple.
-  *Test:* 💻 fly along the trail: it follows the edge, the view is always there, 10 numbered pillars plus the lookout point in the right order.
+---
+
+## Phase 1.5 — Visual target
+Goal: the start area at its **final look** (brief §11). Every station later copies this look, so you review and approve it before anything else continues. Each effect gets a lighter version for the phone (see §11 performance rules).
+
+- [ ] **V.1 Quality settings + FPS meter**
+  One `quality` value (low / medium / high), chosen automatically (desktop = high, phone = medium, VR headset = medium) and overridable with `?quality=low|medium|high`. Every later effect reads it. Dev FPS meter with `?stats` (moved here from 1.10).
+  *Test:* 💻📱 `?stats` shows fps and the chosen quality; `?quality=low` changes the label.
+
+- [ ] **V.2 Watercolour paper look**
+  One small tiling paper-grain texture, generated once in code and shared, laid over the terrain and the sky with soft colour variation so nothing looks flat or digital.
+  *Test:* 💻📱 up close the ground looks like painted paper; no visible tiling pattern at eye height; fps unchanged with `?stats`.
+
+- [ ] **V.3 Time-of-day system**
+  A single `journey` value from 0 to 1 drives everything: golden sunset (0) → deeper pink and purple (≈0.5) → starry night (1). The sky gradient, sun height (it sets), fog colour and distance, light colours and a star field all follow it, using only uniform and colour changes. Text and panels stay readable at night. Dev controls: `?time=0.6` and the `[` / `]` keys to scrub.
+  *Test:* 💻📱 scrub from 0 to 1: smooth change with no stutter, the sun sinks, stars fade in at night, the ground is still visible.
+
+- [ ] **V.4 Atmosphere: particles, clouds, sun rays**
+  Slow floating light motes / petals (one instanced object, animated in the shader; count set by quality), a few soft watercolour cloud sprites, and sun rays as additive gradient fans near the sun (off on low quality). They follow the time of day: rays fade at dusk, and motes become fireflies at night.
+  *Test:* 💻📱 gentle motion everywhere, nothing flickers; `?quality=low` visibly reduces the effects; phone fps stays 30+.
+
+- [ ] **V.5 Lantern + dim trail sample**
+  One low-poly stone lantern: an emissive core, an additive glow sprite and a baked light pool on the ground (no real lights). A "light up" animation with a soft synthesised chime, and a short piece of trail that stays dim until it's lit, then glows. Dev key `L` toggles it.
+  *Test:* 💻📱 press `L`: the lantern lights up with a chime and the trail piece glows; it reads clearly at night (`?time=1`).
+
+- [ ] **V.6 Watercolour panel**
+  The panel component in its final style: a paper card with a watercolour texture, two stacked offset layers (pink / purple), small dried white flowers in a corner, and Arabic text via `arabic-text`. It fades in. Built as the real «جبل طويق» intro panel; stations (2.3) and the second intro panel (1.11) reuse it. One shared paper texture for all panels.
+  *Test:* 💻📱 the panel looks like a slide card, not a box; text matches the HTML reference; it fades in smoothly.
+
+- [ ] **V.7 Light ribbon curve + drawing animation**
+  A `light-curve` component: a glowing ribbon (soft core plus a wider faint halo, additive, baked gradient) sampled once from y = f(x), with breaks handled as separate pieces. It draws itself: a spark travels along the curve (shader `progress` uniform) and the ribbon then glows softly. Faint axes as lines of light, with the formula label (`math-text`) floating above. Samples: the glowing sine wave from slide 1 above the start area, and `f(x) = |x|`.
+  *Test:* 💻📱 trigger the drawing (dev key `D`): the spark draws the curve smoothly, then it glows; no geometry rebuilds during the animation.
+
+- [ ] **V.8 Visual target review** *(gate)*
+  The start area put together with everything above: terrain, sky, paper look, particles, clouds, rays, a lantern with a trail piece, the جبل طويق panel, light curves, and the time-of-day scrubber. You review on laptop and phone; I tune until you approve. I record phone fps for each quality level in `CLAUDE.md`.
+  *Test:* 💻📱 your approval. Nothing after this step starts before it.
+
+---
+
+## Phase 1 (continued) — Trail, movement and start area
+
+- [ ] **1.6 Trail layout + unlit lanterns**
+  Define the trail waypoints (start → 1 … 10 → closing lookout) running near the cliff edge, in one data list. Draw the dim trail on the ground (it glows later, piece by piece, as stations are visited). Put an **unlit lantern** (from V.5) at each station position, plus a small number marker in alternating pink / purple.
+  *Test:* 💻 fly along the trail: it follows the edge, the view is always there, 10 lanterns plus the lookout point in the right order.
 
 - [ ] **1.7 Desktop movement with terrain following**
   WASD + arrows, Shift to walk faster, mouse drag to look, click for pointer lock, Esc to release. Eye height follows `terrainHeight` smoothly. Invisible boundary stops the player at the cliff edge and at the world edge. Replaces the fly camera. Dev shortcut: `?station=5` in the URL starts the player at that station (`?station=end` for the closing lookout).
@@ -71,17 +114,25 @@ Goal: open it on laptop and phone and walk around Jebel Tuwaiq at sunset, with c
   Semi-transparent joystick bottom-left. Drag on the screen to look. Tilt-to-look with the gyroscope (permission request from "ابدأ الرحلة" on iOS). Same terrain following and boundaries as desktop.
   *Test:* 📱 Android Chrome and iPhone Safari: walk with the joystick, look by dragging and by turning the phone, cannot walk off the cliff.
 
-- [ ] **1.10 Decoration: rocks and desert plants**
-  Instanced low-poly rocks and small plants with white flowers, scattered on the plateau but kept off the trail.
-  *Test:* 💻📱 decoration looks natural and avoids the trail. A dev FPS counter (`?stats` in the URL) shows the frame rate stays high on the phone.
+- [ ] **1.10 Decoration: rocks, dried white flowers, desert plants**
+  Instanced low-poly rocks, dried white flowers like the slides, and small desert plants in the watercolour palette, scattered on the plateau but kept off the trail. Counts depend on quality (V.1).
+  *Test:* 💻📱 decoration looks natural and avoids the trail; with `?stats` the frame rate stays 30+ on the phone.
 
 - [ ] **1.11 Start area: 3D title, welcome, credit, hint, intro panels**
-  Spawn facing the cliff and the sun. Big floating title, «مرحبا بكم في مشروعنا», author credit, device-matched movement hint, and two rounded intro panels (جبل طويق, ما هي الدوال؟). The rounded-panel component made here is reused by stations.
+  Spawn facing the cliff and the sun. Big floating title, «مرحبا بكم في مشروعنا», author credit, device-matched movement hint, and both intro panels (جبل طويق, ما هي الدوال؟) in the V.6 watercolour style. Removes the dev test boards.
   *Test:* 💻📱 on load you face the sunset, all text is readable and correct, the hint matches the device.
 
-- [ ] **1.12 Phase 1 checkpoint**
+- [ ] **1.12 Time of day follows the journey**
+  The V.3 `journey` value is driven by how far along the trail the player has come: golden at the start, night by station 10. It follows the **furthest point reached**, so walking back doesn't turn night back into day; it changes slowly and smoothly. `?station=` and `?time=` still work for testing.
+  *Test:* 💻📱 walk (or use `?station=3`, `?station=7`, `?station=10`): the sky deepens from gold to pink and purple to night; walking back keeps the later sky.
+
+- [ ] **1.13 Cinematic opening**
+  After "ابدأ الرحلة", the camera rises from the desert plain up the cliff face to the top of Tuwaiq (about 8–10 s, smooth easing), and the title appears written in light. Then control starts. A tap / click / key skips it (no new text added). **VR:** no camera flight, which causes motion sickness; instead a short fade sequence from a plain view to the cliff top, then the title (see notes).
+  *Test:* 💻📱 the flight is smooth with no stutter, the title writes itself in light, skipping works; 🥽 the fade version is comfortable.
+
+- [ ] **1.14 Phase 1 checkpoint**
   Update `CLAUDE.md` (how to run, structure, decisions so far). Quick review on laptop and phone; list anything to adjust before Phase 2.
-  *Test:* 💻📱 full walk from the start area to the last placeholder pillar.
+  *Test:* 💻📱 from the opening to the last lantern: the full walk, with the sky changing along the way.
 
 ---
 
@@ -93,20 +144,20 @@ Goal: two finished stations that act as the template. Review the look and feel b
   *Test:* 💻 `npm run check:functions` shows correct values (e.g. |−2| = 2, log₂ 8 = 3, [2.7] = 2) and no NaN where the function is defined.
 
 - [ ] **2.2 Station entities generated from data**
-  A `station` component builds each station at its trail position from `content.js` + `functions.js`: stone base, number, colour theme (pink odd / purple even). Replaces the placeholder pillars.
+  A `station` component builds each station at its trail position from `content.js` + `functions.js`: its lantern, number, colour theme (pink odd / purple even).
   *Test:* 💻 10 stations in the right places, colours alternate correctly.
 
 - [ ] **2.3 Info panel**
-  Rounded card in the station tint with a frame: station number, name (big), subtitle, math text, life text, quote styled as a quote. Right-aligned RTL. Slowly turns to face the player. (Generic, so all 10 stations get their panel here.)
+  The V.6 watercolour card in the station tint (pink odd / purple even layers): station number, name (big), subtitle, math text, life text, quote styled as a quote. Right-aligned RTL. Slowly turns to face the player. (Generic, so all 10 stations get their panel here.)
   **No pop-in:** panel textures are near-only (`activeDistance`, see 1.3b) but created at a larger distance than where the panel becomes visible (load early), and the panel fades in. If creating a panel causes a visible stutter on the phone, spread the work over several frames (e.g. one text block per frame).
   *Test:* 💻📱 walk around a panel: it turns smoothly toward you, all text fits, nothing overflows, colours match the station. Walk toward a station from far away: the panel fades in smoothly, never pops, and there's no stutter on the phone.
 
-- [ ] **2.4 Curve sculpture**
-  Glowing tube following y = f(x), thin x and y axes, standing on the base, live formula label above it in Fira Sans. Handles breaks (asymptotes, steps) by drawing separate tube pieces. (Generic, so all 10 shapes appear here.)
-  *Test:* 💻 each of the 10 sculptures has the correct shape for its function; no stray lines across the 1/x asymptote or between floor steps.
+- [ ] **2.4 Light curves for all stations**
+  Each station gets the V.7 light ribbon floating in the air, generated from its f(x), with faint axes of light and the live formula label above (Fira Sans; station 5's `ₐ` drawn as a small lowered "a", since no font has that glyph). Breaks (asymptotes, steps) are separate pieces. The curve draws itself the first time the visitor arrives. (Generic, so all 10 shapes appear here.)
+  *Test:* 💻 each of the 10 curves has the correct shape; no stray lines across the 1/x asymptote or between floor steps; `logₐ` shows a real subscript.
 
 - [ ] **2.5 Parameter control (3D − / + buttons)**
-  `param-control` component: − and + buttons and the value label (`a = 2`). Clicking with mouse or tapping on phone changes the value within its range and rebuilds only that sculpture. Supports more than one row (needed by stations 3, 7, 9).
+  `param-control` component: − and + buttons and the value label (`a = 2`). Clicking with mouse or tapping on phone changes the value within its range and rebuilds only that curve (once per change, never per frame). Supports more than one row (needed by stations 3, 7, 9).
   *Test:* 💻 click − / + on station 1: the value changes in steps, stops at the min/max, and the curve updates instantly. 📱 the same with taps.
 
 - [ ] **2.6 Terrain landmarks system + station 1 V-canyon**
@@ -117,9 +168,9 @@ Goal: two finished stations that act as the template. Review the look and feel b
   Straight ramp pointing at the horizon; `m` changes the slope and `b` the starting height (two control rows).
   *Test:* 💻📱 walk up the ramp; change `m` and `b`: ramp and sculpture both update; negative `m` gives a gentle downhill.
 
-- [ ] **2.8 Visited state: chime + glow**
-  When the player first comes near a station: synthesised soft chime, a glow on the sculpture/base, station marked as visited in a small shared state object (used later by the HUD and quiz).
-  *Test:* 💻 reach station 1: chime once and glow; leaving and returning does not repeat the chime; the console shows the visited list.
+- [ ] **2.8 Visited state: lantern, chime, curve, glowing trail**
+  When the player first comes near a station: its lantern lights up with the soft chime, the light curve draws itself, the trail piece leading to it starts to glow, and the station is marked as visited in a small shared state object (used later by the HUD, the time of day and the quiz).
+  *Test:* 💻 reach station 1: chime once, the lantern lights, the curve draws; leaving and returning doesn't repeat it; after a few stations, looking back shows the path glowing along the cliff edge.
 
 - [ ] **2.9 Phase 2 review**
   You review stations 1 and 3 on laptop and phone. I apply look-and-feel changes before Phase 3. Update `CLAUDE.md`.
@@ -128,7 +179,7 @@ Goal: two finished stations that act as the template. Review the look and feel b
 ---
 
 ## Phase 3 — The remaining 8 stations
-One station per step. Each step: terrain landmark + any special objects + parameter wiring. Panel and sculpture already exist from Phase 2.
+One station per step. Each step: terrain landmark + any special objects + parameter wiring, in the Phase 1.5 look. Panel, lantern and light curve already exist from Phase 2.
 
 - [ ] **3.1 Station 2 — square root: glowing roots + rising path**
   Glowing roots under a translucent ground patch (see A7) that grow slowly; the path rises gently out of the ground following √x. `a` changes the rise.
@@ -210,6 +261,10 @@ One station per step. Each step: terrain landmark + any special objects + parame
   Build-time detection of `assets/audio/intro.mp3` and `station-01.mp3 … station-10.mp3`. "استمع" button appears only on panels that have audio. Respects mute.
   *Test:* 💻 with no audio files: no buttons, no errors. Drop in one test mp3: its button appears and plays.
 
+- [ ] **4.11 Ambient music**
+  Gentle ambient music that starts softly after "ابدأ الرحلة". It uses `assets/audio/ambient.mp3` if that file exists (loaded after the start, so it never slows loading); otherwise a soft generated pad (Web Audio, no download). It drifts with the time of day, ducks under narration, and respects mute.
+  *Test:* 💻📱 music fades in after the start, mute silences it and the chimes, narration plays over it clearly; no file → generated pad, no errors.
+
 ---
 
 ## Phase 5 — Closing activities and end screen
@@ -226,9 +281,13 @@ One station per step. Each step: terrain landmark + any special objects + parame
   Show a function; pick one of 3 subtitles. 5 rounds, same feedback style.
   *Test:* 💻📱🥽 play 5 rounds; the right subtitle is always one of the 3 options.
 
-- [ ] **5.4 End screen + restart**
-  Total score, «شكرًا لرحلتكم معنا», «إعداد: رحمة محمد أحمد المهدي», "ابدأ من جديد" which resets visited state and returns to the start area.
-  *Test:* 💻📱 finish both activities, see the score and credit, restart and confirm the counter is back to zero.
+- [ ] **5.4 Heart finale**
+  After the activities, under the night sky: all 10 light curves rise from their stations into the sky above the lookout and flow together into a heart of light (like slide 1). Done in the vertex shader: each ribbon blends from its curve shape to its piece of the heart (same vertex count), so nothing is rebuilt per frame. Then the credit «إعداد: رحمة محمد أحمد المهدي» appears under the stars.
+  *Test:* 💻📱 the 10 curves rise and form a heart smoothly at 30+ fps on the phone; 🥽 it's comfortable to watch (no camera movement).
+
+- [ ] **5.5 End screen + restart**
+  Total score, «شكرًا لرحلتكم معنا», «إعداد: رحمة محمد أحمد المهدي», "ابدأ من جديد" which resets visited state, lanterns and time of day and returns to the start area.
+  *Test:* 💻📱 finish both activities and the finale, see the score and credit, restart: counter back to zero, lanterns unlit, golden sunset again.
 
 ---
 
@@ -239,7 +298,7 @@ One station per step. Each step: terrain landmark + any special objects + parame
   *Test:* 💻📱 with network throttling in DevTools, the bar fills and the button appears only when ready.
 
 - [ ] **6.2 Performance pass**
-  Measure on a mid-range Android and in the VR emulator; reduce terrain resolution, decoration count or tube segments where needed.
+  Measure on a mid-range Android and in the VR emulator at every quality level; tune the automatic quality choice; reduce terrain resolution, decoration and particle counts, or ribbon segments where needed.
   *Test:* 📱 30+ fps along the whole trail; 💻 60 fps; 🥽 smooth in the emulator.
 
 - [ ] **6.3 Phone polish**

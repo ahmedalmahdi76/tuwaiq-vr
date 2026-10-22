@@ -390,3 +390,48 @@ Source → GitHub Actions) and how to make a QR code for the final link.
   **VR emulator** (the "Immersive Web Emulator" Chrome extension).
 - If something in this brief turns out to be impractical, say so and suggest the closest alternative
   instead of silently dropping it.
+
+---
+
+## 11. Art direction and creative vision
+
+The final result must look **creative and beautiful, not technical**. Test objects (plain boards,
+blocks, flat floors) are only scaffolding. Where this section differs from sections 3, 4 and 8, **this
+section wins**.
+
+### Goals
+1. **Step into the slides.** The world feels like walking into the presentation: watercolour paper
+   textures, soft pink / purple / gold, dried white flowers, and lines of light (like the glowing sine
+   wave and heart on slide 1).
+2. **Curves are ribbons of light.** Each function curve is a glowing ribbon floating in the air, not a
+   tube on a stand. When the visitor arrives at a station, a spark of light draws the curve, then it
+   glows softly. (Replaces the "tube on a stone base" in section 4. The thin axes become faint lines of
+   light and the formula label floats above the ribbon.)
+3. **Time passes with the journey.** Golden sunset at the start, deeper pink and purple through the
+   middle stations, a starry night by station 10. Sky, sun, fog and light all change with the visitor's
+   progress along the trail.
+4. **A trail of lanterns.** The trail is dim. Each station has a lantern that lights up when visited,
+   so looking back the visitor sees their path glowing along the cliff edge.
+5. **Panels look like the slides.** Paper cards with a watercolour texture, two stacked layers
+   (pink / purple), small dried flowers in a corner. No flat plain boxes.
+6. **Atmosphere.** Slow floating light particles or petals, soft clouds, sun rays, gentle ambient music,
+   and a soft chime at stations (all sounds can be muted).
+7. **Cinematic opening.** Before control starts, the camera rises from the desert plain up the cliff face
+   to the top of Tuwaiq, and the title appears written in light.
+8. **Grand finale at the lookout.** All 10 curves rise from their stations into the night sky and come
+   together into a heart of light (like slide 1), then the credit appears under the stars.
+
+### It must still run on an Android phone
+Use cheap tricks, never expensive post-processing:
+- **Glow** = additive sprites and ribbons with a baked soft gradient. No bloom pass.
+- **Watercolour** = one small tiling paper-grain texture shared by everything, plus soft colour blotches
+  baked into vertex colours or gradients. No runtime paint shaders.
+- **Particles** = one instanced / points object animated in the vertex shader. No per-particle JS.
+- **Lanterns** = emissive mesh + additive glow sprite + a baked light pool on the ground. No real point
+  lights (each one makes every lit material more expensive).
+- **Time of day** = only uniform / colour changes. Never add or remove lights or change the fog type at
+  runtime (that recompiles shaders and stutters).
+- **Animated curves** (drawing, rising, heart) = shader uniforms on fixed geometry, never rebuilding
+  geometry every frame.
+- **Quality setting** (low / medium / high), chosen automatically per device and overridable with
+  `?quality=`. Every effect reads it and has a lighter version (fewer particles, fewer clouds, no rays…).
