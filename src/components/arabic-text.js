@@ -4,7 +4,7 @@
 //
 // Set the value from JS with an object: el.setAttribute('arabic-text', { value: text }),
 // because A-Frame's attribute-string syntax treats ":" and ";" as separators.
-// Emits 'textsync' with { width, height } (metres) once the text is visible.
+// Emits 'textsync' with { width, height, pad } (metres; height includes the padding) once ready.
 //
 // activeDistance > 0: the texture only exists while the camera is within that distance
 // (with 20% hysteresis), to keep GPU memory low on phones.
@@ -101,7 +101,7 @@ AFRAME.registerComponent('arabic-text', {
     this.material.needsUpdate = true;
     this.place();
     this.mesh.visible = true;
-    this.el.emit('textsync', { width: entry.width, height: entry.height });
+    this.el.emit('textsync', { width: entry.width, height: entry.height, pad: entry.pad });
   },
 
   releaseEntry() {

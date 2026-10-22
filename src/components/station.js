@@ -21,7 +21,7 @@ export const CURVE = {
 CURVE.originY = CURVE.bottom - Y_WINDOW[0] * CURVE.scale; // height of y = 0
 CURVE.halfWidth = 3 * CURVE.scale;
 
-export const PANEL_SLOT = { x: CURVE.halfWidth + 0.3 + 0.8, z: 0.3 }; // panel centre (1.6 m wide)
+export const PANEL_SLOT = { x: CURVE.halfWidth + 0.3 + 0.8, z: 1.3 }; // panel centre (1.6 m wide), ~3.8 m from VIEW_SPOT
 export const VIEW_SPOT = { x: 0, z: 4 }; // where the visitor stands (matches ?station=)
 export const CONTROLS_SLOT = { y: 1.1, z: 0.4 };
 

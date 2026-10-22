@@ -70,7 +70,7 @@ Legend for test notes: 💻 laptop · 📱 phone (same Wi-Fi, `https://<laptop-L
   A `station` component builds each station at its trail position from `content.js` + `functions.js`: number, colour theme (pink odd / purple even), and the places for panel, curve and controls. Replaces the A.1 markers.
   *Test:* 💻 10 stations in the right places, colours alternate correctly.
 
-- [ ] **B.3 Info panel (clean version)** *(was 2.3)*
+- [x] **B.3 Info panel (clean version)** *(was 2.3)*
   Unlit paper-colour card in the station tint with a simple frame: station number, name (big), subtitle, math text, life text, quote styled as a quote. Right-aligned RTL. Slowly turns to face the player. **No pop-in:** textures are created at a larger distance than where the panel becomes visible, and the panel fades in; creation is spread over frames if it stutters. Readable first; watercolour layers and flowers come in Polish.
   *Test:* 💻📱 every panel's text is complete and correct (compare with the brief); walk around a panel: it turns smoothly toward you; walking up from far away, it fades in without popping.
 
