@@ -66,10 +66,25 @@ export function plateauHeight(x, z) {
   return h;
 }
 
-/** Desert plain below the cliff: gentle swells and distant mesas on the horizon. */
+// Long low ridges running parallel to the escarpment, further and taller: with the low haze they
+// read as receding layers (slide 1). d = distance out from the cliff, h = height, w = half-width.
+const RIDGES = [
+  { d: 600, h: 16, w: 70 },
+  { d: 1050, h: 28, w: 110 },
+  { d: 1650, h: 45, w: 170 },
+];
+
+/** Desert plain below the cliff: gentle swells, receding ridges and distant mesas on the horizon. */
 export function plainHeight(x, z) {
   let h = PLAIN_Y + 4 * fbm(x * 0.002, z * 0.002, 3, 21);
   const out = -z; // distance out from the escarpment
+  RIDGES.forEach((r, i) => {
+    const offset = out - (r.d + 140 * fbm(x * 0.0012, i * 3.1, 2, 70 + i));
+    const crest = 0.55 + 0.45 * (fbm(x * 0.004, i * 5.7, 3, 80 + i) * 0.5 + 0.5);
+    // steeper on the cliff side, longer slope behind
+    const k = offset < 0 ? offset / (r.w * 0.6) : offset / r.w;
+    h += r.h * crest * Math.exp(-k * k);
+  });
   const mesa = smoothstep(0.32, 0.42, fbm(x * 0.0011, z * 0.0011, 3, 23));
   h += 70 * mesa * smoothstep(1400, 2200, out);
   return h;

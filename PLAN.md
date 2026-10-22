@@ -66,8 +66,8 @@ Goal: the start area at its **final look** (brief §11). Every station later cop
   One `quality` value (low / medium / high), chosen automatically (desktop = high, phone = medium, VR headset = medium) and overridable with `?quality=low|medium|high`. Every later effect reads it. Dev FPS meter with `?stats` (moved here from 1.10).
   *Test:* 💻📱 `?stats` shows fps and the chosen quality; `?quality=low` changes the label.
 
-- [ ] **V.2 Watercolour paper look**
-  One small tiling paper-grain texture, generated once in code and shared, laid over the terrain and the sky with soft colour variation so nothing looks flat or digital.
+- [x] **V.2 Watercolour paper look**
+  One small tiling paper-grain texture, generated once in code and shared, laid over the terrain and the sky with soft colour variation so nothing looks flat or digital. Also includes the reference-slide changes: receding ridges, clearer branching riverbeds and cooler patches on the plain, mauve haze low down, thinner cliff layers, deeper cracks and a pale cap rock.
   *Test:* 💻📱 up close the ground looks like painted paper; no visible tiling pattern at eye height; fps unchanged with `?stats`.
 
 - [ ] **V.3 Time-of-day system**

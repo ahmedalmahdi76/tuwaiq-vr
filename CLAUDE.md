@@ -32,6 +32,8 @@ Browser VR/3D experience «حين تتحدث الدوال بلغة المشاع�
   - Lights: warm gold sun against a lilac hemisphere sky light, so shade reads mauve like the slides.
 - **Terrain** (step 1.5): math in [src/terrain.js](src/terrain.js) (pure, no three): `edgeZ(x)` rim line (plain on the −z side, headlands jut out), `rowZ(x, d)` mesh rows (hug the rim, relax to `smoothEdgeZ` past 30–140 m inland so coarse/fine grids meet), `plateauHeight`, `plainHeight` (PLAIN_Y = −140), `wadi`, `terrainHeight` = plateau + `addHeightModifier()` fns (for station landmarks), `spawnPoint()` (x 0, 7 m behind the rim, facing −z).
   - Meshes in [src/components/tuwaiq-terrain.js](src/components/tuwaiq-terrain.js): near plateau band (0–150 m inland, 4 m columns in x −150…800), far plateau (coarse, overlaps 5 m, sunk 0.4 m), cliff curtain (8 strata layers with ledges/undercuts, noise columns, scree slope), plain (60 m grid). One shared flat-shaded vertex-colour MeshStandardMaterial. ~76k triangles total, built in <100 ms. World spans x −3000…3400 so the ends hide in the fog.
+  - **Watercolour look (V.2):** [src/paper-texture.js](src/paper-texture.js) = one shared tileable texture generated in code (R = paper grain, G = washes with faint tide lines; 512² high, 256² medium/low; ~0.4 s at 512² on a laptop, so keep it small). [src/terrain-material.js](src/terrain-material.js) patches MeshStandardMaterial via `onBeforeCompile`: paper grain (3 m tile) + washes (70 m) sampled along the flat face's dominant axis, thin strata lines by height on steep faces, optional painted overlay on the plain, and **height haze** (fog colour mauve `HAZE.low` near the plain → gold above; low ground hazes sooner). Shared uniforms in `terrainUniforms` for V.3. [src/wadi-texture.js](src/wadi-texture.js) paints branching riverbeds + cool/warm patches once (seeded) over `WADI_RECT`; the sky shader also uses the paper texture (explicit `textureLod` to avoid the azimuth seam).
+  - Slide-based changes: 3 receding ridges on the plain (`RIDGES` in terrain.js), cream cap rock + 10 layers + narrow clefts (`CLEFT_DEPTH`) in the cliff, cooler grey-brown patches on the plain.
   - Camera `near: 0.1; far: 6000` (A-Frame's default near 0.005 would z-fight at kilometre distances).
   - Sky colours are passed as `THREE.Color` uniforms (linear) and the shader ends with `colorspace_fragment`, so they match the hex values on screen.
 
@@ -59,7 +61,7 @@ See the "Decisions" table in `PLAN.md`.
 - Step 1.4 done: sky, sun, fog, lights.
 - Step 1.5 done: Tuwaiq terrain (plateau, layered cliff, plain), fog retuned, dev camera presets.
 - Step V.1 done: quality levels + `?stats` FPS meter. Terrain: ~86k tris high / ~76k medium / ~66k low.
-- Proposed for V.2 (from the reference slides; pending the user's OK): layered hazy ridges + clearer branching wadis on the plain, mauve-tinted low haze, more and thinner cliff strata with deeper vertical clefts and a pale cream cap rock, cooler grey-brown variation on the plain.
+- Step V.2 done: watercolour paper look on terrain + sky, plus the slide-based terrain changes (ridges, riverbeds, mauve low haze, cap rock, thin strata, clefts, cool patches). Phone fps not reported yet: ask for them at V.8.
 - Agreed for later: time of day follows the **furthest** point reached (1.12); the opening is skippable by tap/click/key and may show the label «تخطٍّ» in a corner (1.13; user-provided text; add it to content.js and the brief's UI strings then).
 
 ## Checking visuals without the user

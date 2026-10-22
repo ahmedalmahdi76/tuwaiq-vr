@@ -7,6 +7,7 @@ import * as THREE from 'three';
 import { fbm, noise2, smoothstep } from '../noise.js';
 import { PLAIN_Y, WORLD, edgeZ, rowZ, plateauHeight, plainHeight, wadi } from '../terrain.js';
 import { quality } from '../quality.js';
+import { createTerrainMaterial } from '../terrain-material.js';
 
 const C = (hex) => new THREE.Color(hex); // converted to linear, as vertex colours expect
 
@@ -17,16 +18,20 @@ const PALETTE = {
   rose: C('#D4A09C'),
   terracotta: C('#C3826F'),
   mauve: C('#B48C9C'),
+  capRock: C('#EADCC8'), // the pale cream top layer of Tuwaiq
   strata: ['#D6A386', '#BE826E', '#E0B99C', '#B07571', '#CC9886', '#B98A84', '#DAAE94', '#A46E6C'].map(C),
   talus: C('#C29C8E'),
   plain: C('#BF9C9C'),
   plainDark: C('#A48592'),
+  plainCool: C('#A2948F'), // cooler grey-brown patches (slide 3)
   plainWadi: C('#D9C2BA'),
   mesa: C('#AE8D98'),
 };
 
-// Cliff layers (thickness in metres, top to bottom) down to the scree slope.
-const LAYERS = [11, 7, 15, 6, 10, 18, 8, 13];
+// Cliff layers (thickness in metres, top to bottom) down to the scree slope. The first one is the
+// cap rock. Thinner layering inside each band is drawn by the shader (terrain-material.js).
+const LAYERS = [4, 9, 6, 12, 5, 10, 14, 7, 11, 8];
+const CLEFT_DEPTH = 4.5; // narrow deep vertical cracks (m)
 const TALUS_SPREAD = 34; // how far the scree slope reaches out at the bottom (m)
 const TALUS_ROWS = 7;
 
@@ -67,8 +72,11 @@ function plateauColor(x, z, target) {
 
 function plainColor(x, z, h, target) {
   const tone = fbm(x * 0.0015, z * 0.0015, 3, 61) * 0.5 + 0.5;
+  const cool = smoothstep(0.05, 0.4, fbm(x * 0.0009 + 4, z * 0.0009, 3, 62));
   target.copy(PALETTE.plain).lerp(PALETTE.plainDark, tone * 0.6);
-  target.lerp(PALETTE.plainWadi, wadi(x, z) * 0.4);
+  target.lerp(PALETTE.plainCool, cool * 0.6);
+  // Fine riverbeds near the cliff come from the painted overlay; this is only for the far plain
+  target.lerp(PALETTE.plainWadi, wadi(x, z) * 0.25);
   target.lerp(PALETTE.mesa, smoothstep(PLAIN_Y + 15, PLAIN_Y + 60, h));
   return target;
 }
@@ -123,9 +131,11 @@ function cliffProfile() {
   const rows = [{ depth: 0, off: 0, layer: 0, shade: 1 }];
   let top = 0;
   LAYERS.forEach((thickness, k) => {
-    const base = k * 0.7; // each layer steps out a little: the stacked look of Tuwaiq
-    rows.push({ depth: top + 0.6, off: base + 1.3, layer: k, shade: 1.06 }); // ledge
-    rows.push({ depth: top + thickness - 0.5, off: base - 0.5, layer: k, shade: 0.8 }); // undercut
+    const base = k * 0.6; // each layer steps out a little: the stacked look of Tuwaiq
+    const cap = k === 0;
+    // The cap rock overhangs a little more than the layers below it
+    rows.push({ depth: top + 0.6, off: base + (cap ? 1.8 : 1.3), layer: k, shade: 1.06, cap }); // ledge
+    rows.push({ depth: top + thickness - 0.5, off: base - 0.5, layer: k, shade: 0.8, cap }); // undercut
     top += thickness;
   });
   return { rows, talusTop: top, talusBase: (LAYERS.length - 1) * 0.7 };
@@ -154,7 +164,7 @@ function buildCliff(xs) {
       const r = rows[j];
       depth = r.depth;
       off = r.off;
-      tmp.copy(PALETTE.strata[r.layer % PALETTE.strata.length]).multiplyScalar(r.shade);
+      tmp.copy(r.cap ? PALETTE.capRock : PALETTE.strata[r.layer % PALETTE.strata.length]).multiplyScalar(r.shade);
     } else {
       const s = (j - rows.length + 1) / TALUS_ROWS;
       depth = talusTop + (bottom - talusTop) * s;
@@ -165,6 +175,9 @@ function buildCliff(xs) {
     // Rock texture: tall vertical columns (x-driven) + smaller lumps. None at the rim itself.
     const rough = smoothstep(0, 3, depth);
     off += rough * (1.8 * noise2(x * 0.22, depth * 0.03, 41) + 0.7 * noise2(x * 0.09, depth * 0.18, 43));
+    // Narrow deep clefts: sharp dips where the noise crosses zero, running down the face
+    const cleft = Math.pow(1 - Math.abs(noise2(x * 0.11, depth * 0.004, 45)), 10);
+    off -= rough * CLEFT_DEPTH * cleft;
     tmp.multiplyScalar(1 + 0.06 * noise2(x * 0.3, depth * 0.05, 47));
 
     return [x + ox * off, rimY - depth, rimZ + oz * off, tmp];
@@ -185,12 +198,8 @@ function buildPlain() {
 AFRAME.registerComponent('tuwaiq-terrain', {
   init() {
     const t0 = performance.now();
-    this.material = new THREE.MeshStandardMaterial({
-      vertexColors: true,
-      flatShading: true,
-      roughness: 1,
-      metalness: 0,
-    });
+    this.material = createTerrainMaterial();
+    this.plainMaterial = createTerrainMaterial({ wadi: true });
     const xs = columns();
     const nearRows = steps([[0, 40, 2], [40, 150, 6]]);
     const farRows = steps([[145, 600, 25], [600, WORLD.inland, 150]]);
@@ -198,12 +207,12 @@ AFRAME.registerComponent('tuwaiq-terrain', {
 
     this.group = new THREE.Group();
     this.meshes = [
-      buildPlateau(xs, nearRows),
-      buildPlateau(farXs, farRows, 0.4), // overlaps the near band by 5 m; first row sunk to hide seams
-      buildCliff(xs),
-      buildPlain(),
-    ].map((geometry) => {
-      const mesh = new THREE.Mesh(geometry, this.material);
+      [buildPlateau(xs, nearRows), this.material],
+      [buildPlateau(farXs, farRows, 0.4), this.material], // overlaps the near band by 5 m; first row sunk to hide seams
+      [buildCliff(xs), this.material],
+      [buildPlain(), this.plainMaterial],
+    ].map(([geometry, material]) => {
+      const mesh = new THREE.Mesh(geometry, material);
       mesh.matrixAutoUpdate = false;
       this.group.add(mesh);
       return mesh;
@@ -218,5 +227,6 @@ AFRAME.registerComponent('tuwaiq-terrain', {
     this.el.removeObject3D('terrain');
     this.meshes.forEach((m) => m.geometry.dispose());
     this.material.dispose();
+    this.plainMaterial.dispose();
   },
 });

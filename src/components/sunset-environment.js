@@ -3,6 +3,7 @@
 import AFRAME from 'aframe';
 import * as THREE from 'three';
 import { SKY, SUN, FOG, LIGHTS, sunDirection } from '../world-config.js';
+import { paperTexture } from '../paper-texture.js';
 
 const SKY_RADIUS = 5000; // well inside the camera's far plane (10000)
 
@@ -22,6 +23,7 @@ const fragmentShader = /* glsl */ `
   uniform vec3 glowColor;
   uniform vec3 sunDir;
   uniform float discCos;
+  uniform sampler2D uPaper;
   varying vec3 vDir;
 
   void main() {
@@ -39,6 +41,14 @@ const fragmentShader = /* glsl */ `
     col = mix(col, glowColor, horizonBand * 0.35);
     float disc = smoothstep(discCos - 0.00012, discCos + 0.00004, dot(dir, sunDir));
     col = mix(col, discColor, disc);
+
+    // Watercolour paper: fine grain + large soft washes. Explicit LOD avoids a seam where the
+    // azimuth wraps; the effect fades out overhead where the mapping pinches.
+    float az = atan(dir.z, dir.x) / 6.2831853;
+    float paperAmount = 1.0 - smoothstep(0.75, 0.98, abs(h));
+    float grain = textureLod(uPaper, vec2(az * 8.0, h * 4.0), 0.0).r;
+    float wash = textureLod(uPaper, vec2(az * 2.0, h * 1.3), 2.0).g;
+    col *= 1.0 + paperAmount * ((grain - 0.5) * 0.06 + (wash - 0.55) * 0.12);
 
     gl_FragColor = vec4(col, 1.0);
     #include <tonemapping_fragment>
@@ -63,6 +73,7 @@ AFRAME.registerComponent('sunset-environment', {
         glowColor: { value: new THREE.Color(SUN.glowColor) },
         sunDir: { value: sunDir.clone() },
         discCos: { value: Math.cos(THREE.MathUtils.degToRad(SUN.discSizeDeg / 2)) },
+        uPaper: { value: paperTexture() },
       },
       side: THREE.BackSide,
       depthWrite: false,

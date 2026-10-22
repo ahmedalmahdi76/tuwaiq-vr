@@ -24,6 +24,12 @@ export const FOG = {
   far: 2600,
 };
 
+// Haze close to the plain is mauve (slide 1: layered hills fading into lilac), gold higher up.
+export const HAZE = {
+  low: '#CDB0C2',
+  lowExtra: 0.5, // how strongly low ground gathers extra haze with distance (0–1)
+};
+
 // The sun is only 5° up, so it barely lights flat ground; the warm sky light does most of the work
 // on the ground and the sun gives the glowing side faces.
 // three.js (r155+) uses physical light units: intensity π (≈3.14) ≈ the old "1.0".
