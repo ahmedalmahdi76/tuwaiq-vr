@@ -52,6 +52,7 @@ Browser VR/3D experience «حين تتحدث الدوال بلغة المشاع�
 - `src/content.js`: all Arabic content (verbatim from the brief) + `toArabicDigits`, `visitedText`. `npm run check:content` ([scripts/check-content.mjs](scripts/check-content.mjs)) parses the brief and compares every string both ways, character by character; run it after any edit to content or brief.
 - `src/components/`: A-Frame components (`arabic-text`, `math-text`, `world-environment`, `atmosphere`, `tuwaiq-terrain`, `trail-path`, `face-player`).
 - `src/trail.js`: trail + stop positions.
+- **Stations** (B.2): [src/components/station.js](src/components/station.js): `station-list` creates `station="number: N"` entities at `STATIONS_ON_TRAIL`, yaw = `faceYaw` (local +z → trail, −z → cliff, +x = visitor's right). Layout constants: `CURVE` (uniform 0.55 m per unit so shapes stay true; 3.3 m wide, y −3 at 1.0 m → y 4 at 4.85 m; z −1.2), `PANEL_SLOT` (right of the curve, x ≈ 2.75, angled to `VIEW_SPOT` (0, 4)), `CONTROLS_SLOT` (y 1.1, z 0.4). `curveToLocal()`, `setParam(name, value)` (rebuilds the curve, emits `paramchange`). Station colours: `stationTheme(n)` in trail-path.js.
 - `src/functions.js` (step B.1): the 10 functions: `params` (name, min, max, step, default, `skip`, `kind: 'sign'`), display `window` (x −3…3; √ and log 0…6, centred), `Y_WINDOW` −3…4 (curves are **cut** at the edge, not clamped flat), `domain`, `breaks` + `gap` (1/x stops 0.05 before x = 0; floor = one piece per step), `label(p)` (live formula; subscript as `_{…}` for station 5). Helpers: `allowedValues`, `clampParam`, `stepParam`, `defaultParams`, `paramLabel`, `samplePieces`, `windowCentre`. `npm run check:functions` ([scripts/check-functions.mjs](scripts/check-functions.mjs)) checks values, ranges, skips, pieces and labels.
 - `src/text-canvas.js`: canvas drawing, texture cache, memory stats for Arabic text.
 - `src/fonts.js`: font URLs + `arabicFontsReady()`. `src/styles.css`: HTML overlay styles.
@@ -79,6 +80,7 @@ See the "Decisions" table in `PLAN.md`.
 - Step A.1 done: trail along the cliff + numbered station markers + lookout marker. Dev camera key 5 / `?cam=trail` = overview.
 - Step A.2 done: desktop walking, cliff boundary with sliding, ?station=N|end, F = fly.
 - Step B.1 done: functions.js + check:functions.
+- Step B.2 done: 10 station entities (station-list → station) replace the markers; placeholder curve lines + panel card + value labels.
 - Agreed for later: time of day follows the **furthest** point reached (F.6); the opening is skippable by tap/click/key and may show the label «تخطٍّ» in a corner (F.7; user-provided text; add it to content.js and the brief's UI strings then).
 
 ## Checking visuals without the user

@@ -66,7 +66,7 @@ Legend for test notes: 💻 laptop · 📱 phone (same Wi-Fi, `https://<laptop-L
   For each of the 10 stations: `f(x, params)`, parameter list (name, min, max, step, default, skipped values like 0, the sign toggle for 7), x-range, the live formula label, and where the function is undefined (1/x at 0, log for x ≤ 0, jumps in floor). Plus `npm run check:functions` that prints sample values and checks clamping.
   *Test:* 💻 `npm run check:functions` shows correct values (e.g. |−2| = 2, log₂ 8 = 3, [2.7] = 2) and no NaN where the function is defined.
 
-- [ ] **B.2 Station entities from data** *(was 2.2)*
+- [x] **B.2 Station entities from data** *(was 2.2)*
   A `station` component builds each station at its trail position from `content.js` + `functions.js`: number, colour theme (pink odd / purple even), and the places for panel, curve and controls. Replaces the A.1 markers.
   *Test:* 💻 10 stations in the right places, colours alternate correctly.
 

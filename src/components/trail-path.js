@@ -1,11 +1,10 @@
 // <a-entity trail-path> — the visible path along the cliff (a lighter sandy ribbon draped on the
-// terrain) and a simple marker at every stop: numbered posts for the 10 stations (pink odd /
-// purple even) and a ring for the closing lookout. Markers are placeholders until B.2.
+// terrain) and the closing-lookout marker (a ring, until D.1). Stations are built by station.js.
 import AFRAME from 'aframe';
 import * as THREE from 'three';
-import { TRAIL, STATIONS_ON_TRAIL, LOOKOUT } from '../trail.js';
+import { TRAIL, LOOKOUT } from '../trail.js';
 import { terrainHeight } from '../terrain.js';
-import { toArabicDigits, UI } from '../content.js';
+import { UI } from '../content.js';
 
 const WIDTH = 1.8;
 const LIFT = 0.07; // above the terrain, to stay clear of the flat-shaded triangles
@@ -87,35 +86,7 @@ AFRAME.registerComponent('trail-path', {
     this.mesh.renderOrder = 1;
     this.el.setObject3D('trail', this.mesh);
 
-    for (const stop of STATIONS_ON_TRAIL) this.addStationMarker(stop);
     this.addLookoutMarker(LOOKOUT);
-  },
-
-  addStationMarker(stop) {
-    const theme = stationTheme(stop.number);
-    const root = el('a-entity', { position: `${stop.x} ${stop.y} ${stop.z}`, class: 'trail-marker' }, this.el);
-    root.dataset.station = stop.number;
-    el('a-cylinder', {
-      position: '0 0.55 0',
-      radius: 0.14,
-      height: 1.1,
-      'segments-radial': 6,
-      material: `color: ${theme.frame}; flatShading: true; roughness: 1`,
-    }, root);
-    // Number plate (unlit, readable at any time of day), turns to face the visitor
-    const plate = el('a-entity', { position: '0 1.55 0', 'face-player': '' }, root);
-    el('a-circle', { radius: 0.32, segments: 24, material: `shader: flat; color: ${theme.tint}` }, plate);
-    el('a-ring', { 'radius-inner': 0.32, 'radius-outer': 0.36, segments: 24, position: '0 0 0.001', material: `shader: flat; color: ${theme.curve}` }, plate);
-    const label = el('a-entity', { position: '0 0 0.005' }, plate);
-    label.setAttribute('arabic-text', {
-      value: toArabicDigits(stop.number),
-      fontSize: 0.46,
-      weight: 'bold',
-      color: theme.curve,
-      align: 'center',
-      anchorX: 'center',
-      anchorY: 'middle',
-    });
   },
 
   addLookoutMarker(stop) {
