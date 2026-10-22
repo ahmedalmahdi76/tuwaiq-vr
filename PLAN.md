@@ -62,7 +62,7 @@ Legend for test notes: 💻 laptop · 📱 phone (same Wi-Fi, `https://<laptop-L
 
 ## Phase B — Station content (the core of the project)
 
-- [ ] **B.1 `src/functions.js`: math and parameters** *(was 2.1)*
+- [x] **B.1 `src/functions.js`: math and parameters** *(was 2.1)*
   For each of the 10 stations: `f(x, params)`, parameter list (name, min, max, step, default, skipped values like 0, the sign toggle for 7), x-range, the live formula label, and where the function is undefined (1/x at 0, log for x ≤ 0, jumps in floor). Plus `npm run check:functions` that prints sample values and checks clamping.
   *Test:* 💻 `npm run check:functions` shows correct values (e.g. |−2| = 2, log₂ 8 = 3, [2.7] = 2) and no NaN where the function is defined.
 

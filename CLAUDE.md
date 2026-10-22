@@ -52,6 +52,7 @@ Browser VR/3D experience «حين تتحدث الدوال بلغة المشاع�
 - `src/content.js`: all Arabic content (verbatim from the brief) + `toArabicDigits`, `visitedText`. `npm run check:content` ([scripts/check-content.mjs](scripts/check-content.mjs)) parses the brief and compares every string both ways, character by character; run it after any edit to content or brief.
 - `src/components/`: A-Frame components (`arabic-text`, `math-text`, `world-environment`, `atmosphere`, `tuwaiq-terrain`, `trail-path`, `face-player`).
 - `src/trail.js`: trail + stop positions.
+- `src/functions.js` (step B.1): the 10 functions: `params` (name, min, max, step, default, `skip`, `kind: 'sign'`), display `window` (x −3…3; √ and log 0…6, centred), `Y_WINDOW` −3…4 (curves are **cut** at the edge, not clamped flat), `domain`, `breaks` + `gap` (1/x stops 0.05 before x = 0; floor = one piece per step), `label(p)` (live formula; subscript as `_{…}` for station 5). Helpers: `allowedValues`, `clampParam`, `stepParam`, `defaultParams`, `paramLabel`, `samplePieces`, `windowCentre`. `npm run check:functions` ([scripts/check-functions.mjs](scripts/check-functions.mjs)) checks values, ranges, skips, pieces and labels.
 - `src/text-canvas.js`: canvas drawing, texture cache, memory stats for Arabic text.
 - `src/fonts.js`: font URLs + `arabicFontsReady()`. `src/styles.css`: HTML overlay styles.
 - `src/world-config.js`: sky / sun / fog / light values.
@@ -77,6 +78,7 @@ See the "Decisions" table in `PLAN.md`.
 - **Priority change after V.4: content first (phases A–E), visual polish later (phase F).** Steps were renamed; old numbers are noted in PLAN.md.
 - Step A.1 done: trail along the cliff + numbered station markers + lookout marker. Dev camera key 5 / `?cam=trail` = overview.
 - Step A.2 done: desktop walking, cliff boundary with sliding, ?station=N|end, F = fly.
+- Step B.1 done: functions.js + check:functions.
 - Agreed for later: time of day follows the **furthest** point reached (F.6); the opening is skippable by tap/click/key and may show the label «تخطٍّ» in a corner (F.7; user-provided text; add it to content.js and the brief's UI strings then).
 
 ## Checking visuals without the user
