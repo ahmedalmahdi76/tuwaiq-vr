@@ -1,5 +1,5 @@
 // <a-entity info-panel="number: N"> — the station's information card (clean version, B.3).
-// Unlit paper card in the station tint with a thin frame and soft rounded corners, 1.6 m wide,
+// Unlit paper card in the station tint with a thin frame and soft rounded corners, 1.8 m wide,
 // height fitted to the text, centred at 1.7 m. From top to bottom (right-aligned, RTL):
 //   number badge + function name · formula (LTR, centred) · subtitle · math · life · divider · quote
 // Turns to face the player (yaw only, ±40° from its base direction).
@@ -16,16 +16,16 @@ const FADE_FROM = 25;
 const FADE_TO = 20;
 const FREE_AT = 45;
 
-const WIDTH = 1.6;
+const WIDTH = 1.8;
 const PAD = 0.1;
 const INNER = WIDTH - 2 * PAD;
 const CENTRE_Y = 1.7;
 const RADIUS = 0.07;
 const FRAME = 0.012;
-const BADGE_R = 0.065;
+const BADGE_R = 0.072;
 const TEXT_COLOR = '#3B1F2B';
 
-const SIZE = { title: 0.12, formula: 0.075, subtitle: 0.075, body: 0.055, quote: 0.062 };
+const SIZE = { title: 0.13, formula: 0.085, subtitle: 0.085, body: 0.065, quote: 0.072 };
 const GAP = { afterTitle: 0.05, afterFormula: 0.06, afterSubtitle: 0.07, betweenParagraphs: 0.05, divider: 0.08 };
 
 // Draw order inside the panel (all transparent while fading): frame, card, decorations, text
@@ -68,7 +68,7 @@ AFRAME.registerComponent('info-panel', {
     const centred = { align: 'center', anchorX: 'center', anchorY: 'top', lineHeight: 1.7 };
     const titleWidth = INNER - 2 * BADGE_R - 0.06;
     return [
-      { id: 'badge', comp: 'arabic-text', props: { value: toArabicDigits(this.data.number), fontSize: 0.075, weight: 'bold', color: '#FFFFFF', align: 'center', anchorX: 'center', anchorY: 'middle' } },
+      { id: 'badge', comp: 'arabic-text', props: { value: toArabicDigits(this.data.number), fontSize: 0.085, weight: 'bold', color: '#FFFFFF', align: 'center', anchorX: 'center', anchorY: 'middle' } },
       { id: 'title', comp: 'arabic-text', props: { ...right, value: c.name, fontSize: SIZE.title, weight: 'bold', maxWidth: titleWidth, lineHeight: 1.35 } },
       { id: 'formula', comp: 'math-text', props: { value: c.formula, fontSize: SIZE.formula, color: TEXT_COLOR, anchorX: 'center', anchorY: 'top' } },
       { id: 'subtitle', comp: 'arabic-text', props: { ...right, value: c.subtitle, fontSize: SIZE.subtitle, weight: 'bold', color: this.theme.curve, maxWidth: INNER } },

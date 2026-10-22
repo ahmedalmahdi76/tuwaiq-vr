@@ -1,11 +1,10 @@
 // <a-entity station-list> builds the 10 stations from content.js + functions.js + trail.js.
-// <a-entity station="number: N"> is one station. Local frame: +z points at the trail (where the
-// visitor stands), −z toward the cliff; +x is the visitor's right. Seen from the trail:
-//   - the curve floats in front, a little behind the station point (z −1.2), so the cliff view frames it
-//   - the info panel stands to the RIGHT of the curve (Arabic reading starts on the right), angled
-//     toward the trail
-//   - the parameter controls sit below the curve at hand height (1.1 m)
-// The curve is a thin placeholder line until B.4; the controls show their values until B.5.
+// <a-entity station="number: N"> is one station. Local frame: +z points at the trail, −z toward the
+// cliff; +x is the visitor's right. The visitor's standing spot (?station=N) is VIEW_SPOT, 4 m in front.
+// Composed so that from there, in a normal laptop view and without turning:
+//   - the curve floats slightly left of centre, 4.5 m away, with the cliff view behind it
+//   - the info panel stands slightly right, 3 m away, turned toward the visitor
+//   - the parameter controls sit under the curve at hand height, in front of it
 import AFRAME from 'aframe';
 import * as THREE from 'three';
 import { STATIONS_ON_TRAIL } from '../trail.js';
@@ -13,21 +12,29 @@ import { functionFor, defaultParams, samplePieces, windowCentre, Y_WINDOW, param
 import { stationTheme } from './trail-path.js';
 
 // Curve layout (metres, station-local). Uniform scale keeps the shapes true (slope 1 = 45°).
+export const VIEW_SPOT = { x: 0, z: 4 }; // where the visitor stands (matches ?station=)
+
 export const CURVE = {
-  scale: 0.55, // metres per function unit: 6 units wide → 3.3 m
-  bottom: 1.0, // y = −3 sits 1 m above the ground
-  z: -1.2,
+  scale: 0.45, // metres per function unit: 6 units wide → 2.7 m
+  bottom: 1.3, // y = −3 sits 1.3 m above the ground (top, y = 4, at ≈ 4.45 m)
+  x: -1.4, // centre of the curve, left of the view's centre
+  z: -0.5, // 4.5 m from VIEW_SPOT
 };
 CURVE.originY = CURVE.bottom - Y_WINDOW[0] * CURVE.scale; // height of y = 0
 CURVE.halfWidth = 3 * CURVE.scale;
 
-export const PANEL_SLOT = { x: CURVE.halfWidth + 0.3 + 0.8, z: 1.3 }; // panel centre (1.6 m wide), ~3.8 m from VIEW_SPOT
-export const VIEW_SPOT = { x: 0, z: 4 }; // where the visitor stands (matches ?station=)
-export const CONTROLS_SLOT = { y: 1.1, z: 0.4 };
+// Panel centre: 3 m from VIEW_SPOT, ~22° to the right
+const PANEL_ANGLE = THREE.MathUtils.degToRad(22);
+export const PANEL_SLOT = {
+  x: VIEW_SPOT.x + Math.sin(PANEL_ANGLE) * 3,
+  z: VIEW_SPOT.z - Math.cos(PANEL_ANGLE) * 3,
+};
+// Controls: under the curve, in front of it, turned toward VIEW_SPOT
+export const CONTROLS_SLOT = { x: CURVE.x, y: 1.15, z: 0.8 };
 
 /** Function coordinates → station-local position. */
 export function curveToLocal(def, x, y, target = new THREE.Vector3()) {
-  return target.set((x - windowCentre(def)) * CURVE.scale, CURVE.originY + y * CURVE.scale, CURVE.z);
+  return target.set(CURVE.x + (x - windowCentre(def)) * CURVE.scale, CURVE.originY + y * CURVE.scale, CURVE.z);
 }
 
 function el(tag, attrs, parent) {
@@ -68,7 +75,11 @@ AFRAME.registerComponent('station', {
     }, this.el);
 
     // Parameter controls slot (B.5). For now: the current values.
-    this.controls = el('a-entity', { position: `0 ${CONTROLS_SLOT.y} ${CONTROLS_SLOT.z}` }, this.el);
+    const controlsYaw = Math.atan2(VIEW_SPOT.x - CONTROLS_SLOT.x, VIEW_SPOT.z - CONTROLS_SLOT.z);
+    this.controls = el('a-entity', {
+      position: `${CONTROLS_SLOT.x} ${CONTROLS_SLOT.y} ${CONTROLS_SLOT.z}`,
+      rotation: `0 ${THREE.MathUtils.radToDeg(controlsYaw)} 0`,
+    }, this.el);
     this.valueLabel = el('a-entity', {}, this.controls);
     this.updateValueLabel();
   },
