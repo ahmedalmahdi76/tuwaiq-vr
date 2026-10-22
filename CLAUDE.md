@@ -7,7 +7,7 @@ Browser VR/3D experience «حين تتحدث الدوال بلغة المشاع�
 - Never change the Arabic content text. Ask if something looks like a typo.
 - Pin every dependency exactly (`npm install --save-exact`).
 - Test devices: laptop, **Android phone (Chrome)**, **Immersive Web Emulator** in Chrome. No iPhone, no Quest (still support them in code; just don't list them in test notes).
-- GitHub / deploy is on hold (PLAN.md "Later", step L.1). **Don't ask about GitHub until the user brings it up**; skip it at the end of Phase 1.
+- GitHub / deploy is on hold (PLAN.md step G.7). **Don't ask about GitHub until the user brings it up**; skip it at the end of Phase 1.
 
 ## Run
 - `npm install`
@@ -70,7 +70,8 @@ See the "Decisions" table in `PLAN.md`.
 - Step V.2 done: watercolour paper look on terrain + sky, plus the slide-based terrain changes (ridges, riverbeds, mauve low haze, cap rock, thin strata, clefts, cool patches).
 - Step V.3 done: time-of-day system (sunset → rose → purple dusk → indigo night with moon and stars).
 - Step V.4 done: golden dust → fireflies, sky-coloured clouds, sun rays that fade at sunset.
-- Agreed for later: time of day follows the **furthest** point reached (1.12); the opening is skippable by tap/click/key and may show the label «تخطٍّ» in a corner (1.13; user-provided text; add it to content.js and the brief's UI strings then).
+- **Priority change after V.4: content first (phases A–E), visual polish later (phase F).** Steps were renamed; old numbers are noted in PLAN.md.
+- Agreed for later: time of day follows the **furthest** point reached (F.6); the opening is skippable by tap/click/key and may show the label «تخطٍّ» in a corner (F.7; user-provided text; add it to content.js and the brief's UI strings then).
 
 ## Checking visuals without the user
 **Stopping test processes:** only by command line (`chrome-profile` user-data-dir, or `vite` + `tuwaiq`) via `Get-CimInstance Win32_Process`. Never `taskkill /IM chrome.exe`: that closes the user's own browser. Headless fps (SwiftShader, ~10 fps) is meaningless. Don't ask the user for fps or device reports; keep effects light by design (quality settings, §11 tricks).
