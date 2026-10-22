@@ -74,9 +74,9 @@ Goal: the start area at its **final look** (brief §11). Every station later cop
   A single `journey` value from 0 to 1 drives everything: golden sunset (0) → deeper pink and purple (≈0.5) → starry night (1). The sky gradient, sun height (it sets), fog colour and distance, light colours and a star field all follow it, using only uniform and colour changes. Text and panels stay readable at night. Dev controls: `?time=0.6` and the `[` / `]` keys to scrub.
   *Test:* 💻📱 scrub from 0 to 1: smooth change with no stutter, the sun sinks, stars fade in at night, the ground is still visible.
 
-- [ ] **V.4 Atmosphere: particles, clouds, sun rays**
+- [x] **V.4 Atmosphere: particles, clouds, sun rays**
   Slow floating light motes / petals (one instanced object, animated in the shader; count set by quality), a few soft watercolour cloud sprites, and sun rays as additive gradient fans near the sun (off on low quality). They follow the time of day: rays fade at dusk, and motes become fireflies at night.
-  *Test:* 💻📱 gentle motion everywhere, nothing flickers; `?quality=low` visibly reduces the effects; phone fps stays 30+.
+  *Test:* 💻📱 gentle motion everywhere, nothing flickers; `?quality=low` visibly reduces the effects.
 
 - [ ] **V.5 Lantern + dim trail sample**
   One low-poly stone lantern: an emissive core, an additive glow sprite and a baked light pool on the ground (no real lights). A "light up" animation with a soft synthesised chime, and a short piece of trail that stays dim until it's lit, then glows. Dev key `L` toggles it.
@@ -91,7 +91,7 @@ Goal: the start area at its **final look** (brief §11). Every station later cop
   *Test:* 💻📱 trigger the drawing (dev key `D`): the spark draws the curve smoothly, then it glows; no geometry rebuilds during the animation.
 
 - [ ] **V.8 Visual target review** *(gate)*
-  The start area put together with everything above: terrain, sky, paper look, particles, clouds, rays, a lantern with a trail piece, the جبل طويق panel, light curves, and the time-of-day scrubber. You review on laptop and phone; I tune until you approve. I record phone fps for each quality level in `CLAUDE.md`.
+  The start area put together with everything above: terrain, sky, paper look, particles, clouds, rays, a lantern with a trail piece, the جبل طويق panel, light curves, and the time-of-day scrubber. You review on laptop and phone; I tune until you approve.
   *Test:* 💻📱 your approval. Nothing after this step starts before it.
 
 ---

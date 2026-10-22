@@ -15,6 +15,9 @@ export const MOON = {
   sizeDeg: 3,
 };
 
+// Clouds take their colours from the keyframes: cloudLit = sunny/moonlit tops, cloudShade = undersides.
+// rays = strength of the sun rays (fade out as the sun sets).
+
 // Linear fog distances (the colour changes with the time of day).
 export const FOG = { near: 150, far: 2600 };
 
@@ -34,6 +37,7 @@ export const TIME_KEYS = [
     light: '#FFD2A0', lightIntensity: 4.2, moonLight: 0,
     hemiSky: '#E6D0E4', hemiGround: '#B08A80', hemiIntensity: 3.2,
     fog: '#F7C98B', haze: '#CDB0C2',
+    cloudLit: '#FFE2B4', cloudShade: '#E9AFC2', cloudOpacity: 0.8, rays: 1,
   },
   {
     t: 0.35, // deeper rose, sun touching the horizon
@@ -43,6 +47,7 @@ export const TIME_KEYS = [
     light: '#FFB89A', lightIntensity: 3.4, moonLight: 0,
     hemiSky: '#DDB8D8', hemiGround: '#A07C80', hemiIntensity: 2.9,
     fog: '#F0AE9C', haze: '#C79DBA',
+    cloudLit: '#FFC4A6', cloudShade: '#CC8DB4', cloudOpacity: 0.8, rays: 0.75,
   },
   {
     t: 0.65, // purple dusk, pink afterglow, first stars
@@ -52,6 +57,7 @@ export const TIME_KEYS = [
     light: '#E3A6C0', lightIntensity: 2.0, moonLight: 0.45,
     hemiSky: '#B9A0D6', hemiGround: '#6E5470', hemiIntensity: 2.7,
     fog: '#C690AE', haze: '#9E80AE',
+    cloudLit: '#F0A9C0', cloudShade: '#7F659C', cloudOpacity: 0.7, rays: 0,
   },
   {
     t: 1, // soft indigo night, moon and stars
@@ -61,6 +67,7 @@ export const TIME_KEYS = [
     light: '#CFC8F2', lightIntensity: 1.9, moonLight: 1,
     hemiSky: '#9488CE', hemiGround: '#4A3D63', hemiIntensity: 2.5,
     fog: '#6F5E99', haze: '#5E4E86',
+    cloudLit: '#CBC5EE', cloudShade: '#41387A', cloudOpacity: 0.5, rays: 0,
   },
 ];
 

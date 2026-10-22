@@ -6,6 +6,7 @@ import { arabicFontsReady } from './fonts.js';
 import './components/arabic-text.js';
 import './components/math-text.js';
 import './components/world-environment.js';
+import './components/atmosphere.js';
 import './components/tuwaiq-terrain.js';
 import { runArabicTest } from './dev/arabic-test.js';
 import { setupCameraPresets } from './dev/camera-presets.js';

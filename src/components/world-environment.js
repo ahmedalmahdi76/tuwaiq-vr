@@ -35,9 +35,26 @@ const fragmentShader = /* glsl */ `
   uniform float moonCos;
   uniform float moonVisible;
   uniform float stars;
+  uniform float rays;
   uniform float time;
   uniform sampler2D uPaper;
   varying vec3 vDir;
+
+  #ifdef RAYS
+  // Soft beams fanning out from the sun (mostly upward), turning very slowly. Sky only: no extra
+  // geometry or draw calls. Fades out as the sun sets (rays uniform).
+  float sunRays(vec3 dir) {
+    vec3 right = normalize(cross(sunDir, vec3(0.0, 1.0, 0.0)));
+    vec3 up = cross(right, sunDir);
+    vec2 p = vec2(dot(dir, right), dot(dir, up));
+    float ang = atan(p.y, p.x);
+    float dist = acos(clamp(dot(dir, sunDir), -1.0, 1.0));
+    float beams = pow(0.5 + 0.5 * sin(ang * 7.0 + sin(ang * 3.0 + time * 0.03) * 2.0), 5.0) * 0.6
+                + pow(0.5 + 0.5 * sin(ang * 13.0 + 1.3 - time * 0.02), 9.0) * 0.4;
+    float falloff = exp(-dist * 3.2) * smoothstep(0.03, 0.12, dist);
+    return beams * falloff * smoothstep(-0.02, 0.12, dir.y);
+  }
+  #endif
 
   float hash13(vec3 p) {
     p = fract(p * 0.1031);
@@ -91,6 +108,9 @@ const fragmentShader = /* glsl */ `
     col = mix(col, glowColor, horizonBand * 0.35 * glowStrength);
     float disc = smoothstep(discCos - 0.00012, discCos + 0.00004, dot(dir, sunDir));
     col = mix(col, discColor, disc * discVisible);
+    #ifdef RAYS
+      col += glowColor * sunRays(dir) * rays * 0.22;
+    #endif
 
     // Stars fade in toward the night and thin out near the horizon haze.
     float above = smoothstep(0.03, 0.3, h);
@@ -145,6 +165,7 @@ AFRAME.registerComponent('world-environment', {
       moonCos: { value: Math.cos(THREE.MathUtils.degToRad(MOON.sizeDeg / 2)) },
       moonVisible: { value: 0 },
       stars: { value: 0 },
+      rays: { value: 0 },
       time: { value: 0 },
       uPaper: { value: paperTexture() },
     };
@@ -152,7 +173,10 @@ AFRAME.registerComponent('world-environment', {
       vertexShader,
       fragmentShader,
       uniforms: this.uniforms,
-      defines: quality.skySparkles ? { SPARKLES: '' } : {},
+      defines: {
+        ...(quality.skySparkles ? { SPARKLES: '' } : {}),
+        ...(quality.sunRays ? { RAYS: '' } : {}),
+      },
       side: THREE.BackSide,
       depthWrite: false,
       fog: false,
@@ -206,6 +230,7 @@ AFRAME.registerComponent('world-environment', {
     skyDirection(MOON.azimuthDeg, env.moonEl, u.moonDir.value);
     u.moonVisible.value = THREE.MathUtils.smoothstep(env.moonEl, -1, 3);
     u.stars.value = env.stars;
+    u.rays.value = env.rays;
 
     fog.color.copy(env.fog);
     terrainUniforms.uHazeLow.value.copy(env.haze);

@@ -5,8 +5,8 @@
 import * as THREE from 'three';
 import { TIME_KEYS } from './world-config.js';
 
-const COLOR_FIELDS = ['horizon', 'mid', 'top', 'glow', 'light', 'hemiSky', 'hemiGround', 'fog', 'haze'];
-const NUMBER_FIELDS = ['sunEl', 'glowStrength', 'moonEl', 'stars', 'lightIntensity', 'moonLight', 'hemiIntensity'];
+const COLOR_FIELDS = ['horizon', 'mid', 'top', 'glow', 'light', 'hemiSky', 'hemiGround', 'fog', 'haze', 'cloudLit', 'cloudShade'];
+const NUMBER_FIELDS = ['sunEl', 'glowStrength', 'moonEl', 'stars', 'lightIntensity', 'moonLight', 'hemiIntensity', 'cloudOpacity', 'rays'];
 
 // Pre-convert keyframe colours (hex → linear THREE.Color) once.
 const KEYS = TIME_KEYS.map((k) => {
