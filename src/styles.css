@@ -6,6 +6,26 @@ body {
   font-family: 'Tajawal', sans-serif;
 }
 
+/* Dev-only: FPS meter (?stats) */
+.dev-fps {
+  position: fixed;
+  top: max(8px, env(safe-area-inset-top));
+  left: max(8px, env(safe-area-inset-left));
+  z-index: 20;
+  padding: 6px 8px;
+  background: rgba(59, 31, 43, 0.72);
+  color: #f6e3ea;
+  border-radius: 8px;
+  font: 11px/1.4 ui-monospace, Menlo, Consolas, monospace;
+  white-space: pre;
+  cursor: pointer;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+.dev-fps-slow {
+  background: rgba(176, 0, 32, 0.8);
+}
+
 /* Dev-only: HTML reference panel for the step 1.2 Arabic test */
 .dev-reference {
   position: fixed;

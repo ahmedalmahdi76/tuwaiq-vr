@@ -6,6 +6,7 @@ import AFRAME from 'aframe';
 import * as THREE from 'three';
 import { fbm, noise2, smoothstep } from '../noise.js';
 import { PLAIN_Y, WORLD, edgeZ, rowZ, plateauHeight, plainHeight, wadi } from '../terrain.js';
+import { quality } from '../quality.js';
 
 const C = (hex) => new THREE.Color(hex); // converted to linear, as vertex colours expect
 
@@ -37,7 +38,7 @@ function columns() {
   };
   add(WORLD.xMin, -600, 60);
   add(-600, -150, 12);
-  add(-150, 800, 4);
+  add(-150, 800, quality.terrainStep);
   add(800, 1300, 12);
   add(1300, WORLD.xMax + 1, 60);
   return xs;

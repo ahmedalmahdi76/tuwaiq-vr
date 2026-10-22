@@ -24,6 +24,7 @@ Browser VR/3D experience «حين تتحدث الدوال بلغة المشاع�
   - Memory = w×h×4×4/3 bytes per block. Step 1.3b numbers: dev boards 34.1 MB (6 textures, temporary); station panels estimated at 51 MB for all 10, 5.5 MB for the largest → **use `activeDistance` on station panels** (≈2 stations resident ≈ 11 MB). Reserve idea if memory gets tight: single-channel (R8) textures, 4× smaller.
 - **Latin math formulas = troika** via `math-text` ([src/components/math-text.js](src/components/math-text.js)), Fira Sans, SDF-sharp, cheap to update live.
   - **Glyph gaps:** none of Fira Sans / Tajawal / Cairo has subscript `ₐ` (U+2090), and Tajawal has no `ˣ` (U+02E3). Station 5's `logₐ x` must be handled in step 2.4 (e.g. a smaller, lowered "a" as its own text). On canvas panels, missing glyphs fall back to a system font.
+- **Quality** (step V.1): [src/quality.js](src/quality.js) exports a frozen `quality` = `{ level, source, device, ...settings }`. Level is auto (desktop → high, phone → medium, headset → medium) or `?quality=low|medium|high`. Per-level settings live in its `SETTINGS` table (`maxPixelRatio`, `terrainStep`, …); every new effect adds its own entry there and reads `quality.x`, never the device directly. `applyQuality(scene)` caps the pixel ratio. Changing level = page reload.
 - Fonts are imported with `?url` in [src/fonts.js](src/fonts.js) so the build copies them and respects `base`. Tajawal faces are registered from JS (used by canvas and HTML).
 - **Environment** (step 1.4): `<a-scene sunset-environment>` ([src/components/sunset-environment.js](src/components/sunset-environment.js)) adds the shader sky dome (gradient + sun disc + glow, follows the camera, no fog), linear fog, one directional sun light and one hemisphere light. All values in [src/world-config.js](src/world-config.js) (`SKY`, `SUN`, `FOG`, `LIGHTS`, `sunDirection()`). Sun: azimuth 15° right of the spawn's forward (−z), 5° up.
   - **Light units:** three r155+ is physical: intensity ≈ π equals the old "1.0". Our sun 4.5, hemisphere 3.6.
@@ -43,7 +44,7 @@ Browser VR/3D experience «حين تتحدث الدوال بلغة المشاع�
 - `src/fonts.js`: font URLs + `arabicFontsReady()`. `src/styles.css`: HTML overlay styles.
 - `src/world-config.js`: sky / sun / fog / light values.
 - `src/noise.js`: deterministic value noise / fBm / smoothstep. `src/terrain.js`: terrain math.
-- `src/dev/`: temporary dev helpers. `arabic-test.js` = Arabic text boards with HTML reference + texture memory, only with `?text` (remove in 1.11). `camera-presets.js` = fly-camera viewpoints `?cam=spawn|edge|aerial|below`, keys 1–4 (remove when movement exists, 1.7).
+- `src/dev/`: temporary dev helpers. `arabic-test.js` = Arabic text boards with HTML reference + texture memory, only with `?text` (remove in 1.11). `fps-meter.js` = `?stats` overlay (fps, worst frame, triangles, draw calls, pixel ratio, quality; tap to cycle quality); uses the scene tick so it works in VR. `camera-presets.js` = fly-camera viewpoints `?cam=spawn|edge|aerial|below`, keys 1–4 (remove when movement exists, 1.7).
 - `index.html`: `#rig` holds the camera; temporary `wasd-controls="fly: true"` until 1.7.
 - `assets/`: fonts (Tajawal for Arabic, Fira Sans for math formulas; Cairo unused). Audio/images may be added later and must stay optional.
 
@@ -57,7 +58,11 @@ See the "Decisions" table in `PLAN.md`.
 - Step 1.3b done: `arabic-text` switched to canvas; `math-text` (troika) for formulas.
 - Step 1.4 done: sky, sun, fog, lights.
 - Step 1.5 done: Tuwaiq terrain (plateau, layered cliff, plain), fog retuned, dev camera presets.
+- Step V.1 done: quality levels + `?stats` FPS meter. Terrain: ~86k tris high / ~76k medium / ~66k low.
+- Proposed for V.2 (from the reference slides; pending the user's OK): layered hazy ridges + clearer branching wadis on the plain, mauve-tinted low haze, more and thinner cliff strata with deeper vertical clefts and a pale cream cap rock, cooler grey-brown variation on the plain.
 - Agreed for later: time of day follows the **furthest** point reached (1.12); the opening is skippable by tap/click/key and may show the label «تخطٍّ» in a corner (1.13; user-provided text; add it to content.js and the brief's UI strings then).
 
 ## Checking visuals without the user
+**Stopping test processes:** only by command line (`chrome-profile` user-data-dir, or `vite` + `tuwaiq`) via `Get-CimInstance Win32_Process`. Never `taskkill /IM chrome.exe`: that closes the user's own browser. Headless fps (SwiftShader, ~10 fps) is meaningless; real fps come from the user's devices.
+
 Headless Chrome can render the scene: `npx vite build && npx vite preview`, then Chrome `--headless=new --ignore-certificate-errors --enable-unsafe-swiftshader --use-angle=swiftshader --remote-debugging-port=…` and grab `Page.captureScreenshot` over DevTools after a few seconds of **real** time. `--screenshot` with `--virtual-time-budget` fires before fonts/workers finish, so text is missing. `Runtime.evaluate` (with `awaitPromise`) can move the camera (`document.querySelector('[camera]').object3D.position`) for close/far checks.

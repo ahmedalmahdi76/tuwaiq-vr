@@ -62,7 +62,7 @@ Goal: open it on laptop and phone and walk around Jebel Tuwaiq at sunset, with c
 ## Phase 1.5 — Visual target
 Goal: the start area at its **final look** (brief §11). Every station later copies this look, so you review and approve it before anything else continues. Each effect gets a lighter version for the phone (see §11 performance rules).
 
-- [ ] **V.1 Quality settings + FPS meter**
+- [x] **V.1 Quality settings + FPS meter**
   One `quality` value (low / medium / high), chosen automatically (desktop = high, phone = medium, VR headset = medium) and overridable with `?quality=low|medium|high`. Every later effect reads it. Dev FPS meter with `?stats` (moved here from 1.10).
   *Test:* 💻📱 `?stats` shows fps and the chosen quality; `?quality=low` changes the label.
 
