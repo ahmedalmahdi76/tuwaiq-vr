@@ -24,6 +24,10 @@ Browser VR/3D experience «حين تتحدث الدوال بلغة المشاع�
 - **Latin math formulas = troika** via `math-text` ([src/components/math-text.js](src/components/math-text.js)), Fira Sans, SDF-sharp, cheap to update live.
   - **Glyph gaps:** none of Fira Sans / Tajawal / Cairo has subscript `ₐ` (U+2090), and Tajawal has no `ˣ` (U+02E3). Station 5's `logₐ x` must be handled in step 2.4 (e.g. a smaller, lowered "a" as its own text). On canvas panels, missing glyphs fall back to a system font.
 - Fonts are imported with `?url` in [src/fonts.js](src/fonts.js) so the build copies them and respects `base`. Tajawal faces are registered from JS (used by canvas and HTML).
+- **Environment** (step 1.4): `<a-scene sunset-environment>` ([src/components/sunset-environment.js](src/components/sunset-environment.js)) adds the shader sky dome (gradient + sun disc + glow, follows the camera, no fog), linear fog, one directional sun light and one hemisphere light. All values in [src/world-config.js](src/world-config.js) (`SKY`, `SUN`, `FOG`, `LIGHTS`, `sunDirection()`). Sun: azimuth 15° right of the spawn's forward (−z), 5° up.
+  - **Light units:** three r155+ is physical: intensity ≈ π equals the old "1.0". Our sun 4.5, hemisphere 3.6.
+  - Fog (60–650 m) is hardly visible on a flat floor at eye height; tune it in 1.5 against the cliff and the plain below.
+  - Sky colours are passed as `THREE.Color` uniforms (linear) and the shader ends with `colorspace_fragment`, so they match the hex values on screen.
 
 ## Structure
 - `index.html`: the `<a-scene>`.
@@ -32,7 +36,8 @@ Browser VR/3D experience «حين تتحدث الدوال بلغة المشاع�
 - `src/components/`: A-Frame components (`arabic-text`, `math-text`).
 - `src/text-canvas.js`: canvas drawing, texture cache, memory stats for Arabic text.
 - `src/fonts.js`: font URLs + `arabicFontsReady()`. `src/styles.css`: HTML overlay styles.
-- `src/dev/`: temporary test scenes (`arabic-test.js` = intro boards + a board of every word with harakat, each mirrored in an HTML reference, a math-text sample, live texture memory; remove when the start area is built in 1.11).
+- `src/world-config.js`: sky / sun / fog / light values.
+- `src/dev/`: temporary test scenes. `arabic-test.js` = intro boards + a board of every word with harakat, each mirrored in an HTML reference, a math-text sample, live texture memory (remove in 1.11). `environment-test.js` = flat sand floor, fog pillars at 15–600 m, lighting shapes (remove in 1.5).
 - `assets/`: fonts (Tajawal for Arabic, Fira Sans for math formulas; Cairo unused). Audio/images may be added later and must stay optional.
 
 ## Decisions
@@ -43,6 +48,7 @@ See the "Decisions" table in `PLAN.md`.
 - Step 1.2 done: shared three.js verified, `arabic-text` component (troika).
 - Step 1.3 done: `content.js` + `check:content`. Found the troika damma bug (see Stack).
 - Step 1.3b done: `arabic-text` switched to canvas; `math-text` (troika) for formulas.
+- Step 1.4 done: sky, sun, fog, lights.
 
 ## Checking visuals without the user
 Headless Chrome can render the scene: `npx vite build && npx vite preview`, then Chrome `--headless=new --ignore-certificate-errors --enable-unsafe-swiftshader --use-angle=swiftshader --remote-debugging-port=…` and grab `Page.captureScreenshot` over DevTools after a few seconds of **real** time. `--screenshot` with `--virtual-time-budget` fires before fonts/workers finish, so text is missing. `Runtime.evaluate` (with `awaitPromise`) can move the camera (`document.querySelector('[camera]').object3D.position`) for close/far checks.
