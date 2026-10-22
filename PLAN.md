@@ -47,7 +47,7 @@ Goal: open it on laptop and phone and walk around Jebel Tuwaiq at sunset, with c
   `arabic-text` keeps the same API but draws with a 2D canvas (browser shaping) into a texture: waits for Tajawal via `document.fonts.load`, sizes the canvas to the text block, mipmaps + anisotropic filtering, a resolution chosen for VR reading distance, a shared cache (redraw only when the text changes, dispose unused textures), and optional near-only creation (`activeDistance`) for the phone memory budget. troika stays only for Latin math formulas (new `math-text` component, Fira Sans).
   *Test:* 💻📱 the marks board matches the HTML reference for every word, especially «تُعدّ», «بُعد», «تُمثَّل», «يُسمّى»; text is sharp up close and readable from a few metres; the dev panel shows the texture memory total.
 
-- [ ] **1.4 Sky, sun, fog and lights**
+- [x] **1.4 Sky, sun, fog and lights**
   Gradient sky (`#F7C98B` → `#E9A9B8` → `#B59AB8`), low sun disc on the horizon, fog matching the horizon colour, one directional light (sun) + one hemisphere light.
   *Test:* 💻📱 look around: warm gold at the horizon, pink above, mauve at the top, sun low on one side, distant objects fade into the fog.
 
@@ -98,7 +98,8 @@ Goal: two finished stations that act as the template. Review the look and feel b
 
 - [ ] **2.3 Info panel**
   Rounded card in the station tint with a frame: station number, name (big), subtitle, math text, life text, quote styled as a quote. Right-aligned RTL. Slowly turns to face the player. (Generic, so all 10 stations get their panel here.)
-  *Test:* 💻📱 walk around a panel: it turns smoothly toward you, all text fits, nothing overflows, colours match the station.
+  **No pop-in:** panel textures are near-only (`activeDistance`, see 1.3b) but created at a larger distance than where the panel becomes visible (load early), and the panel fades in. If creating a panel causes a visible stutter on the phone, spread the work over several frames (e.g. one text block per frame).
+  *Test:* 💻📱 walk around a panel: it turns smoothly toward you, all text fits, nothing overflows, colours match the station. Walk toward a station from far away: the panel fades in smoothly, never pops, and there's no stutter on the phone.
 
 - [ ] **2.4 Curve sculpture**
   Glowing tube following y = f(x), thin x and y axes, standing on the base, live formula label above it in Fira Sans. Handles breaks (asymptotes, steps) by drawing separate tube pieces. (Generic, so all 10 shapes appear here.)
