@@ -6,6 +6,11 @@ import basicSsl from '@vitejs/plugin-basic-ssl';
 export default defineConfig({
   base: process.env.BASE_PATH || '/',
   plugins: [basicSsl()],
+  resolve: {
+    // "three" is pinned in package.json to the same super-three A-Frame uses.
+    // dedupe makes sure every import (A-Frame, troika) resolves to that one copy.
+    dedupe: ['three'],
+  },
   build: {
     chunkSizeWarningLimit: 2000, // A-Frame alone is ~1.3 MB minified
   },

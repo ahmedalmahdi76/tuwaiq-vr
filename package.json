@@ -9,7 +9,9 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "aframe": "1.8.0"
+    "aframe": "1.8.0",
+    "three": "npm:super-three@0.184.0",
+    "troika-three-text": "0.52.5"
   },
   "devDependencies": {
     "@vitejs/plugin-basic-ssl": "2.3.0",

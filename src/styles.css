@@ -1,0 +1,54 @@
+@font-face {
+  font-family: 'Tajawal';
+  src: url('../assets/Tajawal/Tajawal-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Tajawal';
+  src: url('../assets/Tajawal/Tajawal-Bold.ttf') format('truetype');
+  font-weight: 700;
+  font-display: swap;
+}
+
+body {
+  margin: 0;
+  background: #b59ab8;
+  font-family: 'Tajawal', sans-serif;
+}
+
+/* Dev-only: HTML reference panel for the step 1.2 Arabic test */
+.dev-reference {
+  position: fixed;
+  top: 8px;
+  left: 8px;
+  z-index: 10;
+  width: min(420px, calc(100vw - 32px));
+  max-height: 45vh;
+  overflow-y: auto;
+  padding: 8px 12px;
+  background: rgba(246, 227, 234, 0.92);
+  color: #3b1f2b;
+  border: 2px solid #c07a9a;
+  border-radius: 12px;
+  font-size: 15px;
+  line-height: 1.5;
+  direction: rtl;
+  text-align: right;
+}
+.dev-reference h2 {
+  margin: 0 0 4px;
+  font-size: 13px;
+  opacity: 0.6;
+}
+.dev-reference p {
+  margin: 4px 0;
+}
+.dev-reference .dev-ok,
+.dev-reference .dev-fail {
+  font-family: monospace;
+  font-size: 11px;
+  text-align: left;
+}
+.dev-reference .dev-ok { color: #1b7a3a; }
+.dev-reference .dev-fail { color: #b00020; font-weight: 700; }
