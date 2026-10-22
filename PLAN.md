@@ -39,7 +39,7 @@ Goal: open it on laptop and phone and walk around Jebel Tuwaiq at sunset, with c
   First, set up the `three` alias (A9) and confirm only one three.js copy is loaded (no "Multiple instances of Three.js" warning, and troika's objects render inside the A-Frame scene). Then wrap troika-three-text in an A-Frame component (`value, fontSize, color, maxWidth, align, direction, anchorX, anchorY`) using Tajawal. Test scene shows the title, one long quote with «» and punctuation, Arabic-Indic digits, and mixed Arabic + `f(x)`. A plain HTML version of the same lines sits beside it for comparison. If troika fails, switch to the canvas-texture fallback. I will tell you which approach we kept.
   *Test:* 💻 DevTools console has no duplicate-three.js warning. 💻📱 letters are joined, words are in right-to-left order, punctuation at the correct end, and the 3D text matches the HTML reference.
 
-- [ ] **1.3 `src/content.js` with all Arabic content**
+- [x] **1.3 `src/content.js` with all Arabic content**
   Intro texts, 10 stations (name, formula, subtitle, math, life, quote), UI strings, movement hints, author credit. Plus a small script `npm run check:content` that confirms every string matches `PROJECT_BRIEF.md` exactly.
   *Test:* 💻 `npm run check:content` prints "all match". The test scene shows the intro panel text loaded from `content.js`.
 

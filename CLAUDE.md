@@ -17,16 +17,17 @@ Browser VR/3D experience «حين تتحدث الدوال بلغة المشاع�
 - Vite 8 (vanilla JS) + `@vitejs/plugin-basic-ssl`, config in `vite.config.js` (`base` from `BASE_PATH` env, default `/`).
 - A-Frame 1.8.0 (npm). Its ES-module build does **not** bundle three; it does `import … from "three"`, and A-Frame depends on `three` = `npm:super-three@0.184.0`.
 - **One three.js:** our package.json pins `"three": "npm:super-three@0.184.0"` (same as A-Frame) and `vite.config.js` has `resolve.dedupe: ['three']`. `npm ls three` must show every copy as "deduped". If A-Frame is upgraded, update this `three` pin to match `node_modules/aframe/package.json`.
-- **Arabic 3D text: troika-three-text 0.52.5** (decision from step 1.2: troika works, no canvas fallback needed). Joined letters, RTL order, «», Arabic-Indic digits and mixed Arabic + Latin all render correctly. Console shows `unsupported GPOS table LookupType 5` from troika's font parser; harmless for our text (the shadda in «التقدّم» is placed correctly).
+- **Arabic 3D text: troika-three-text 0.52.5** (decision from step 1.2: troika works, no canvas fallback needed). Joined letters, RTL order, «», Arabic-Indic digits and mixed Arabic + Latin all render correctly. **Known troika bug (found in step 1.3):** a damma on a word-initial ت / ب / ي floats outside the word, at its top right: «تُعدّ», «بُعد», «تُمثَّل», «يُسمّى». Same result with Tajawal, Cairo and troika's own fallback font, so it is troika's shaping (console: `unsupported GPOS table LookupType 5` / `LookupType 8`), not the font. Tanween, shadda, shadda+fatha, kasra and kasratan are all placed correctly. Fix pending the user's decision.
 - Component `arabic-text` ([src/components/arabic-text.js](src/components/arabic-text.js)): props from the brief + `weight` (`regular`/`bold`) and `lineHeight`. Set `value` from JS with an object (`el.setAttribute('arabic-text', { value })`), never as an attribute string, because `:` and `;` are A-Frame separators. Emits `textsync` when ready.
 - Fonts are imported with `?url` in [src/fonts.js](src/fonts.js) so the build copies them and respects `base`.
 
 ## Structure
 - `index.html`: the `<a-scene>`.
 - `src/main.js`: entry; imports A-Frame, styles, components.
+- `src/content.js`: all Arabic content (verbatim from the brief) + `toArabicDigits`, `visitedText`. `npm run check:content` ([scripts/check-content.mjs](scripts/check-content.mjs)) parses the brief and compares every string both ways, character by character; run it after any edit to content or brief.
 - `src/components/`: A-Frame components (`arabic-text`).
 - `src/fonts.js`: font URLs. `src/styles.css`: @font-face + HTML overlay styles.
-- `src/dev/`: temporary test scenes (`arabic-test.js` = step 1.2 board + HTML reference; remove when the start area is built in 1.11).
+- `src/dev/`: temporary test scenes (`arabic-test.js` = intro boards + a board of every word with harakat, each mirrored in an HTML reference; remove when the start area is built in 1.11).
 - `assets/`: fonts (Tajawal for Arabic, Fira Sans for math formulas; Cairo unused). Audio/images may be added later and must stay optional.
 
 ## Decisions
@@ -35,6 +36,7 @@ See the "Decisions" table in `PLAN.md`.
 ## Progress
 - Step 1.1 done: scaffold + HTTPS dev server.
 - Step 1.2 done: shared three.js verified, `arabic-text` component (troika).
+- Step 1.3 done: `content.js` + `check:content`. Found the troika damma bug (see Stack).
 
 ## Checking visuals without the user
 Headless Chrome can render the scene: `npx vite build && npx vite preview`, then Chrome `--headless=new --ignore-certificate-errors --enable-unsafe-swiftshader --use-angle=swiftshader --remote-debugging-port=…` and grab `Page.captureScreenshot` over DevTools after a few seconds of **real** time. `--screenshot` with `--virtual-time-budget` fires before troika's web worker finishes, so text is missing.
