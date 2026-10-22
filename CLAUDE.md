@@ -1,7 +1,8 @@
 # CLAUDE.md — notes for future sessions
 
 Browser VR/3D experience «حين تتحدث الدوال بلغة المشاعر»: a walk along Jebel Tuwaiq with 10 math-function stations.
-- `PROJECT_BRIEF.md` = the vision (background only, not a task list).
+- `PROJECT_BRIEF.md` = the vision (background only, not a task list). **§11 = art direction** (watercolour slides look, light ribbons, time of day, lanterns, opening, heart finale, phone-cheap tricks + quality settings); it wins over §3/§4/§8.
+- `reference/` (project root) = slide images 1–5 from the presentation (slide-01 heart + light lines, slide-03 Tuwaiq photo, slide-04 paper card style). **Visual reference only, never import them into the build.** (As of step 1.5 the folder wasn't on disk yet; the user shared the slides in chat.)
 - `PLAN.md` = the agreed step-by-step plan. **Work one step at a time, only when the user names the step.** At the end of a step: tick its box, summarise, give test notes (laptop / phone / VR emulator), make **one commit** (`Step X.Y: short title`), then stop.
 - Never change the Arabic content text. Ask if something looks like a typo.
 - Pin every dependency exactly (`npm install --save-exact`).
@@ -26,7 +27,11 @@ Browser VR/3D experience «حين تتحدث الدوال بلغة المشاع�
 - Fonts are imported with `?url` in [src/fonts.js](src/fonts.js) so the build copies them and respects `base`. Tajawal faces are registered from JS (used by canvas and HTML).
 - **Environment** (step 1.4): `<a-scene sunset-environment>` ([src/components/sunset-environment.js](src/components/sunset-environment.js)) adds the shader sky dome (gradient + sun disc + glow, follows the camera, no fog), linear fog, one directional sun light and one hemisphere light. All values in [src/world-config.js](src/world-config.js) (`SKY`, `SUN`, `FOG`, `LIGHTS`, `sunDirection()`). Sun: azimuth 15° right of the spawn's forward (−z), 5° up.
   - **Light units:** three r155+ is physical: intensity ≈ π equals the old "1.0". Our sun 4.5, hemisphere 3.6.
-  - Fog (60–650 m) is hardly visible on a flat floor at eye height; tune it in 1.5 against the cliff and the plain below.
+  - Fog: linear 150–2600 m (tuned in 1.5 so the plain shows below the cliff and melts into the gold horizon).
+  - Lights: warm gold sun against a lilac hemisphere sky light, so shade reads mauve like the slides.
+- **Terrain** (step 1.5): math in [src/terrain.js](src/terrain.js) (pure, no three): `edgeZ(x)` rim line (plain on the −z side, headlands jut out), `rowZ(x, d)` mesh rows (hug the rim, relax to `smoothEdgeZ` past 30–140 m inland so coarse/fine grids meet), `plateauHeight`, `plainHeight` (PLAIN_Y = −140), `wadi`, `terrainHeight` = plateau + `addHeightModifier()` fns (for station landmarks), `spawnPoint()` (x 0, 7 m behind the rim, facing −z).
+  - Meshes in [src/components/tuwaiq-terrain.js](src/components/tuwaiq-terrain.js): near plateau band (0–150 m inland, 4 m columns in x −150…800), far plateau (coarse, overlaps 5 m, sunk 0.4 m), cliff curtain (8 strata layers with ledges/undercuts, noise columns, scree slope), plain (60 m grid). One shared flat-shaded vertex-colour MeshStandardMaterial. ~76k triangles total, built in <100 ms. World spans x −3000…3400 so the ends hide in the fog.
+  - Camera `near: 0.1; far: 6000` (A-Frame's default near 0.005 would z-fight at kilometre distances).
   - Sky colours are passed as `THREE.Color` uniforms (linear) and the shader ends with `colorspace_fragment`, so they match the hex values on screen.
 
 ## Structure
@@ -37,7 +42,9 @@ Browser VR/3D experience «حين تتحدث الدوال بلغة المشاع�
 - `src/text-canvas.js`: canvas drawing, texture cache, memory stats for Arabic text.
 - `src/fonts.js`: font URLs + `arabicFontsReady()`. `src/styles.css`: HTML overlay styles.
 - `src/world-config.js`: sky / sun / fog / light values.
-- `src/dev/`: temporary test scenes. `arabic-test.js` = intro boards + a board of every word with harakat, each mirrored in an HTML reference, a math-text sample, live texture memory (remove in 1.11). `environment-test.js` = flat sand floor, fog pillars at 15–600 m, lighting shapes (remove in 1.5).
+- `src/noise.js`: deterministic value noise / fBm / smoothstep. `src/terrain.js`: terrain math.
+- `src/dev/`: temporary dev helpers. `arabic-test.js` = Arabic text boards with HTML reference + texture memory, only with `?text` (remove in 1.11). `camera-presets.js` = fly-camera viewpoints `?cam=spawn|edge|aerial|below`, keys 1–4 (remove when movement exists, 1.7).
+- `index.html`: `#rig` holds the camera; temporary `wasd-controls="fly: true"` until 1.7.
 - `assets/`: fonts (Tajawal for Arabic, Fira Sans for math formulas; Cairo unused). Audio/images may be added later and must stay optional.
 
 ## Decisions
@@ -49,6 +56,8 @@ See the "Decisions" table in `PLAN.md`.
 - Step 1.3 done: `content.js` + `check:content`. Found the troika damma bug (see Stack).
 - Step 1.3b done: `arabic-text` switched to canvas; `math-text` (troika) for formulas.
 - Step 1.4 done: sky, sun, fog, lights.
+- Step 1.5 done: Tuwaiq terrain (plateau, layered cliff, plain), fog retuned, dev camera presets.
+- Agreed for later: time of day follows the **furthest** point reached (1.12); the opening is skippable by tap/click/key and may show the label «تخطٍّ» in a corner (1.13; user-provided text; add it to content.js and the brief's UI strings then).
 
 ## Checking visuals without the user
 Headless Chrome can render the scene: `npx vite build && npx vite preview`, then Chrome `--headless=new --ignore-certificate-errors --enable-unsafe-swiftshader --use-angle=swiftshader --remote-debugging-port=…` and grab `Page.captureScreenshot` over DevTools after a few seconds of **real** time. `--screenshot` with `--virtual-time-budget` fires before fonts/workers finish, so text is missing. `Runtime.evaluate` (with `awaitPromise`) can move the camera (`document.querySelector('[camera]').object3D.position`) for close/far checks.

@@ -20,16 +20,17 @@ export const SUN = {
 // Linear fog in the horizon colour, so the far desert melts into the sky.
 export const FOG = {
   color: SKY.horizon,
-  near: 60,
-  far: 650,
+  near: 150,
+  far: 2600,
 };
 
 // The sun is only 5° up, so it barely lights flat ground; the warm sky light does most of the work
 // on the ground and the sun gives the glowing side faces.
 // three.js (r155+) uses physical light units: intensity π (≈3.14) ≈ the old "1.0".
+// Warm gold sun against a lilac sky light: lit faces glow gold, shade goes mauve (like the slides).
 export const LIGHTS = {
-  sun: { color: '#FFD6A8', intensity: 4.5 },
-  hemisphere: { sky: '#F2D6CC', ground: '#B98A72', intensity: 3.6 },
+  sun: { color: '#FFD2A0', intensity: 4.2 },
+  hemisphere: { sky: '#E6D0E4', ground: '#B08A80', intensity: 3.2 },
 };
 
 /** Unit vector pointing from the world toward the sun. */

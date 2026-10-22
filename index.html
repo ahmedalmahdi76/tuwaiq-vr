@@ -8,7 +8,17 @@
   </head>
   <body>
     <a-scene sunset-environment>
-      <!-- Dev test entities are added from src/dev/ -->
+      <a-entity tuwaiq-terrain></a-entity>
+
+      <!-- Player rig. Temporary fly controls until step 1.7 adds real movement. -->
+      <a-entity id="rig">
+        <a-entity
+          camera="near: 0.1; far: 6000"
+          look-controls
+          wasd-controls="fly: true; acceleration: 300"
+          position="0 1.6 0"
+        ></a-entity>
+      </a-entity>
     </a-scene>
   </body>
 </html>

@@ -53,7 +53,7 @@ Goal: open it on laptop and phone and walk around Jebel Tuwaiq at sunset, with c
   Gradient sky (`#F7C98B` → `#E9A9B8` → `#B59AB8`), low sun disc on the horizon, fog matching the horizon colour, one directional light (sun) + one hemisphere light.
   *Test:* 💻📱 look around: warm gold at the horizon, pink above, mauve at the top, sun low on one side, distant objects fade into the fog.
 
-- [ ] **1.5 Terrain: `terrainHeight(x, z)` + plateau mesh with cliff edge** *(final art, not a placeholder)*
+- [x] **1.5 Terrain: `terrainHeight(x, z)` + plateau mesh with cliff edge** *(final art, not a placeholder)*
   Height function for a low-poly plateau with a dramatic cliff on one side and a wide desert plain far below. Flat-shaded mesh in the slide palette: sand, rose and terracotta, with Tuwaiq's horizontal rock layers as soft colour bands down the cliff face and gentle colour blotches on top (vertex colours, no extra textures yet). Built so stations can add local shapes to it later. Fog distances are tuned here against the real cliff view. Removes the flat test floor and pillars from 1.4.
   *Test:* 💻📱 a temporary fly camera (keyboard / drag) shows the plateau, the layered cliff and the plain below fading into the haze. No gaps or spikes in the mesh. It already looks like a place, not a test.
 
@@ -127,7 +127,7 @@ Goal: the start area at its **final look** (brief §11). Every station later cop
   *Test:* 💻📱 walk (or use `?station=3`, `?station=7`, `?station=10`): the sky deepens from gold to pink and purple to night; walking back keeps the later sky.
 
 - [ ] **1.13 Cinematic opening**
-  After "ابدأ الرحلة", the camera rises from the desert plain up the cliff face to the top of Tuwaiq (about 8–10 s, smooth easing), and the title appears written in light. Then control starts. A tap / click / key skips it (no new text added). **VR:** no camera flight, which causes motion sickness; instead a short fade sequence from a plain view to the cliff top, then the title (see notes).
+  After "ابدأ الرحلة", the camera rises from the desert plain up the cliff face to the top of Tuwaiq (about 8–10 s, smooth easing), and the title appears written in light. Then control starts. A tap / click / key skips it, with a small «تخطٍّ» label in a corner (text given by you). **VR:** no camera flight, which causes motion sickness; instead a short fade sequence from a plain view to the cliff top, then the title (see notes).
   *Test:* 💻📱 the flight is smooth with no stutter, the title writes itself in light, skipping works; 🥽 the fade version is comfortable.
 
 - [ ] **1.14 Phase 1 checkpoint**
