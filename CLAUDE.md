@@ -7,12 +7,12 @@ Browser VR/3D experience «حين تتحدث الدوال بلغة المشاع�
 - Never change the Arabic content text. Ask if something looks like a typo.
 - Pin every dependency exactly (`npm install --save-exact`).
 - Test devices: laptop, **Android phone (Chrome)**, **Immersive Web Emulator** in Chrome. No iPhone, no Quest (still support them in code; just don't list them in test notes).
-- GitHub / deploy is on hold (PLAN.md step G.7). **Don't ask about GitHub until the user brings it up**; skip it at the end of Phase 1.
+- **Live site:** https://ahmedalmahdi76.github.io/tuwaiq-vr/ (repo github.com/ahmedalmahdi76/tuwaiq-vr). Every push to `main` deploys via [.github/workflows/deploy.yml](.github/workflows/deploy.yml) (Node 22, `npm ci`, `check:content`, build with `BASE_PATH=/tuwaiq-vr/`, Pages artifact). The workflow rewrites `ssh://git@github.com/` to HTTPS because A-Frame's dependency three-bmfont-text is locked as git+ssh. Locally in Git Bash use `MSYS_NO_PATHCONV=1 BASE_PATH=/tuwaiq-vr/ npm run build` (otherwise Git Bash rewrites the path).
 
 ## Run
 - `npm install`
 - `npm run dev` → `https://localhost:5173` (self-signed cert: accept the warning). The terminal also prints a `Network` URL for a phone on the same Wi-Fi. HTTPS is required for motion sensors and WebXR.
-- `npm run build` → `dist/`. `BASE_PATH=/repo-name/ npm run build` for GitHub Pages.
+- `npm run build` → `dist/`. GitHub Pages builds with `BASE_PATH=/tuwaiq-vr/` (see Live site).
 
 ## Stack
 - Vite 8 (vanilla JS) + `@vitejs/plugin-basic-ssl`, config in `vite.config.js` (`base` from `BASE_PATH` env, default `/`).
