@@ -1,5 +1,6 @@
 // Entry point: loads A-Frame and our components. Later steps add the loading screen and device detection.
 import 'aframe';
+import './aframe-fixes.js';
 import './styles.css';
 import { quality, applyQuality } from './quality.js';
 import { arabicFontsReady } from './fonts.js';

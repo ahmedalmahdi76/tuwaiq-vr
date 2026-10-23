@@ -198,3 +198,46 @@ body {
   box-shadow: 0 2px 8px rgba(59, 31, 43, 0.3);
   pointer-events: none;
 }
+
+/* No browser gestures (scroll, bounce, double-tap zoom) on the 3D view: our touch-look handles them */
+.a-canvas {
+  touch-action: none;
+}
+html,
+body {
+  overscroll-behavior: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* ---------- Turn buttons (touch devices, bottom-right, above A-Frame's VR button) ---------- */
+.turn-buttons {
+  position: fixed;
+  right: max(14px, env(safe-area-inset-right));
+  bottom: max(78px, calc(env(safe-area-inset-bottom) + 68px));
+  z-index: 20;
+  display: flex;
+  gap: 10px;
+}
+.turn-buttons button {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(255, 244, 230, 0.85);
+  background: rgba(59, 31, 43, 0.5);
+  color: #fff4e6;
+  font-size: 24px;
+  line-height: 1;
+  padding: 0;
+  cursor: pointer;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+.turn-buttons button:active {
+  transform: scale(0.92);
+}
+.not-started .turn-buttons {
+  display: none;
+}
