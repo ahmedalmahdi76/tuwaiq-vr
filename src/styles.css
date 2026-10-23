@@ -6,6 +6,26 @@ body {
   font-family: 'Tajawal', sans-serif;
 }
 
+/* Centre dot while the mouse pointer is locked: clicks go to what it points at */
+.crosshair {
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  width: 6px;
+  height: 6px;
+  margin: -3px 0 0 -3px;
+  border-radius: 50%;
+  background: rgba(255, 244, 230, 0.85);
+  box-shadow: 0 0 0 1.5px rgba(59, 31, 43, 0.45);
+  pointer-events: none;
+  z-index: 15;
+  transition: transform 0.12s;
+}
+.crosshair-hot {
+  transform: scale(1.8);
+  background: #fff;
+}
+
 /* Dev-only: FPS meter (?stats) */
 .dev-fps {
   position: fixed;

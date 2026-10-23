@@ -11,6 +11,8 @@ import './components/tuwaiq-terrain.js';
 import './components/face-player.js';
 import './components/trail-path.js';
 import './components/info-panel.js';
+import './interaction.js';
+import './components/param-controls.js';
 import './components/station.js';
 import './components/player-move.js';
 import { runArabicTest } from './dev/arabic-test.js';

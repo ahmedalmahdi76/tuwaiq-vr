@@ -8,7 +8,7 @@
 import AFRAME from 'aframe';
 import * as THREE from 'three';
 import { STATIONS_ON_TRAIL } from '../trail.js';
-import { functionFor, defaultParams, windowCentre, Y_WINDOW, paramLabel } from '../functions.js';
+import { functionFor, defaultParams, windowCentre, Y_WINDOW, stepParam, clampParam } from '../functions.js';
 import { LightCurve } from '../light-curve.js';
 import { stationTheme } from './trail-path.js';
 
@@ -39,6 +39,7 @@ export function curveToLocal(def, x, y, target = new THREE.Vector3()) {
 }
 
 const LABELS_WITHIN = 40;
+const MORPH_TIME = 0.3; // seconds
 const camPos = new THREE.Vector3();
 const selfPos = new THREE.Vector3();
 
@@ -81,20 +82,32 @@ AFRAME.registerComponent('station', {
       'info-panel': `number: ${n}`,
     }, this.el);
 
-    // Parameter controls slot (B.5). For now: the current values.
+    // Parameter controls (B.5): one row per parameter under the curve, turned toward the visitor
     const controlsYaw = Math.atan2(VIEW_SPOT.x - CONTROLS_SLOT.x, VIEW_SPOT.z - CONTROLS_SLOT.z);
-    this.controls = el('a-entity', {
+    this.controlsEl = el('a-entity', {
       position: `${CONTROLS_SLOT.x} ${CONTROLS_SLOT.y} ${CONTROLS_SLOT.z}`,
       rotation: `0 ${THREE.MathUtils.radToDeg(controlsYaw)} 0`,
     }, this.el);
-    this.valueLabel = el('a-entity', {}, this.controls);
-    this.updateValueLabel();
+    this.controlsEl.setAttribute('param-controls', '');
 
-    this.tick = AFRAME.utils.throttleTick(this.tick, 300, this);
+    this.shown = { ...this.params }; // what the curve currently shows (eases toward this.params)
+    this.morph = null;
+    this.nextCheck = 0;
   },
 
-  /** Hide the small axis numbers when far away (fewer draw calls; unreadable anyway). */
-  tick() {
+  tick(time, delta) {
+    // Morph: ease the shown parameters to the new values over MORPH_TIME, rebuilding the ribbon
+    if (this.morph) {
+      const m = this.morph;
+      m.t = Math.min(1, m.t + delta / 1000 / MORPH_TIME);
+      const k = m.t * m.t * (3 - 2 * m.t);
+      for (const name of Object.keys(m.to)) this.shown[name] = m.from[name] + (m.to[name] - m.from[name]) * k;
+      this.curve.update(this.shown);
+      if (m.t >= 1) this.morph = null;
+    }
+    if (time < this.nextCheck) return;
+    this.nextCheck = time + 300;
+    // Hide the small axis numbers when far away (fewer draw calls; unreadable anyway)
     const camera = this.el.sceneEl.camera;
     if (!camera) return;
     camera.getWorldPosition(camPos);
@@ -115,18 +128,20 @@ AFRAME.registerComponent('station', {
     });
   },
 
-  updateValueLabel() {
-    const text = this.def.params.map((p) => paramLabel(p, this.params[p.name])).join('     ');
-    this.valueLabel.setAttribute('math-text', { value: text, fontSize: 0.09, color: '#FFF4E6' });
+  /** Step a parameter up (dir 1) or down (−1); dir 0 toggles a sign parameter. */
+  changeParam(name, dir) {
+    const param = this.def.params.find((p) => p.name === name);
+    const value = param.kind === 'sign' ? -this.params[name] : stepParam(param, this.params[name], dir);
+    if (value !== this.params[name]) this.setParam(name, value);
   },
 
-  /** Change one parameter (used by the controls in B.5). */
+  /** Set one parameter (clamped to its allowed values); the curve morphs to the new shape. */
   setParam(name, value) {
-    this.params = { ...this.params, [name]: value };
-    this.curve.update(this.params);
+    const param = this.def.params.find((p) => p.name === name);
+    this.params = { ...this.params, [name]: clampParam(param, value) };
+    this.morph = { from: { ...this.shown }, to: { ...this.params }, t: 0 };
     this.updateFormula();
-    this.updateValueLabel();
-    this.el.emit('paramchange', { name, value, params: this.params });
+    this.el.emit('paramchange', { name, value: this.params[name], params: this.params });
   },
 
   remove() {

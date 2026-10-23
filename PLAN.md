@@ -78,7 +78,7 @@ Legend for test notes: 💻 laptop · 📱 phone (same Wi-Fi, `https://<laptop-L
   A glowing ribbon floating in the air for y = f(x) (additive, baked soft gradient), with faint axes of light and a light cream formula label with the live parameter (Fira Sans; station 5's `ₐ` drawn as a small lowered "a"). Breaks (asymptotes, floor steps) are separate pieces. No drawing animation yet.
   *Test:* 💻 each of the 10 curves has the correct shape; no stray lines across the 1/x asymptote or between floor steps; `logₐ` shows a real subscript; labels readable at sunset and at night.
 
-- [ ] **B.5 Parameter controls for all stations** *(was 2.5)*
+- [x] **B.5 Parameter controls for all stations** *(was 2.5)*
   3D − / + buttons and the value label (`a = 2`) for every station, multi-row for stations 3 (m, b), 7 (a + sign) and 9 (a, b, c). Mouse click and tap; values clamp to their ranges and skip forbidden values; the curve and its label update live (rebuilt once per change, never per frame).
   *Test:* 💻 at every station, − / + change the value in steps, stop at min / max, and the curve updates instantly; station 9 skips a = 0. 📱 the same with taps.
 
