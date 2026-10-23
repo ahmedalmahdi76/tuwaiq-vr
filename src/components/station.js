@@ -10,6 +10,8 @@ import * as THREE from 'three';
 import { STATIONS_ON_TRAIL } from '../trail.js';
 import { functionFor, defaultParams, windowCentre, Y_WINDOW, stepParam, clampParam } from '../functions.js';
 import { LightCurve } from '../light-curve.js';
+import { markVisited } from '../visited.js';
+import { playChime } from '../sound.js';
 import { stationTheme } from './trail-path.js';
 
 // Curve layout (metres, station-local). Uniform scale keeps the shapes true (slope 1 = 45°).
@@ -40,6 +42,16 @@ export function curveToLocal(def, x, y, target = new THREE.Vector3()) {
 
 const LABELS_WITHIN = 40;
 const MORPH_TIME = 0.3; // seconds
+const VISIT_RADIUS = 6; // metres from the station point
+const GLOW_TIME = 1.5; // seconds of extra glow on the first visit
+
+/** 0 → 1 quickly, hold, then ease back to 0 over GLOW_TIME. */
+function glowEnvelope(t) {
+  if (t < 0.2) return t / 0.2;
+  if (t < 0.5) return 1;
+  const k = Math.min(1, (t - 0.5) / (GLOW_TIME - 0.5));
+  return 1 - k * k * (3 - 2 * k);
+}
 const camPos = new THREE.Vector3();
 const selfPos = new THREE.Vector3();
 
@@ -93,9 +105,17 @@ AFRAME.registerComponent('station', {
     this.shown = { ...this.params }; // what the curve currently shows (eases toward this.params)
     this.morph = null;
     this.nextCheck = 0;
+    this.glowT = null; // seconds into the visited glow, null when idle
   },
 
   tick(time, delta) {
+    if (this.glowT !== null) {
+      this.glowT += Math.min(delta, 100) / 1000;
+      const g = this.glowT >= GLOW_TIME ? 0 : glowEnvelope(this.glowT);
+      this.curve.setBoost(g);
+      this.panel.components['info-panel']?.setGlow(g);
+      if (this.glowT >= GLOW_TIME) this.glowT = null;
+    }
     // Morph: ease the shown parameters to the new values over MORPH_TIME, rebuilding the ribbon
     if (this.morph) {
       const m = this.morph;
@@ -106,7 +126,7 @@ AFRAME.registerComponent('station', {
       if (m.t >= 1) this.morph = null;
     }
     if (time < this.nextCheck) return;
-    this.nextCheck = time + 300;
+    this.nextCheck = time + 150;
     // Hide the small axis numbers when far away (fewer draw calls; unreadable anyway)
     const camera = this.el.sceneEl.camera;
     if (!camera) return;
@@ -114,6 +134,11 @@ AFRAME.registerComponent('station', {
     this.el.object3D.getWorldPosition(selfPos);
     this.distance = Math.hypot(camPos.x - selfPos.x, camPos.z - selfPos.z);
     this.curve.setLabelsVisible(this.distance < LABELS_WITHIN);
+    // The visited moment: once per station per page load
+    if (this.distance < VISIT_RADIUS && markVisited(this.data.number)) {
+      playChime(this.data.number - 1);
+      this.glowT = 0;
+    }
   },
 
   updateFormula() {

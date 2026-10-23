@@ -171,7 +171,13 @@ AFRAME.registerComponent('info-panel', {
       return mesh;
     };
     const cardY = PAD - height / 2;
-    add(roundedRect(WIDTH + 2 * FRAME, height + 2 * FRAME, RADIUS + FRAME), this.theme.frame, -0.003, ORDER.frame, cardY);
+    this.frameMesh = add(roundedRect(WIDTH + 2 * FRAME, height + 2 * FRAME, RADIUS + FRAME), this.theme.frame, -0.003, ORDER.frame, cardY);
+    // Glow behind the frame for the visited moment (additive, invisible at 0)
+    this.glowMesh = add(roundedRect(WIDTH + 0.16, height + 0.16, RADIUS + 0.08), this.theme.curve, -0.006, ORDER.frame - 1, cardY);
+    this.glowMesh.material.blending = THREE.AdditiveBlending;
+    this.glowMesh.material.depthWrite = false;
+    this.glowMesh.visible = false;
+    this.applyGlow();
     add(roundedRect(WIDTH, height, RADIUS), this.theme.tint, 0, ORDER.card, cardY);
     add(new THREE.CircleGeometry(BADGE_R, 32), this.theme.curve, 0.002, ORDER.deco, -firstLine, badgeX);
     add(new THREE.PlaneGeometry(INNER * 0.7, 0.004), this.theme.frame, 0.002, ORDER.deco, dividerY);
@@ -184,17 +190,32 @@ AFRAME.registerComponent('info-panel', {
     this.fade = -1; // force the first setFade
   },
 
+  /** Visited moment: 0 = normal, 1 = frame bright and a soft glow around the card. */
+  setGlow(g) {
+    this.glow = g;
+    this.applyGlow();
+  },
+
+  applyGlow() {
+    if (!this.frameMesh) return;
+    const g = this.glow || 0;
+    this.frameMesh.material.color.set(this.theme.frame).lerp(new THREE.Color(this.theme.curve), g).lerp(new THREE.Color('#FFFFFF'), g * 0.35);
+    this.glowMesh.visible = g > 0.01 && this.fade > 0;
+    this.glowMesh.material.opacity = 0.55 * g * Math.max(this.fade, 0);
+  },
+
   setFade(fade) {
     this.fade = fade;
     if (!this.root) return;
     this.root.object3D.visible = fade > 0;
     this.root.object3D.traverse((o) => {
       if (o.fillOpacity !== undefined) o.fillOpacity = fade; // troika text
-      else if (o.material) {
+      else if (o.material && o !== this.glowMesh) {
         o.material.transparent = true;
         o.material.opacity = fade;
       }
     });
+    this.applyGlow();
   },
 
   free() {
@@ -205,6 +226,8 @@ AFRAME.registerComponent('info-panel', {
       mesh.material.dispose();
     });
     this.meshes = null;
+    this.frameMesh = null;
+    this.glowMesh = null;
     this.root?.remove(); // removing the entities releases their text textures
     this.root = null;
     this.fade = 0;

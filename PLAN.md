@@ -82,7 +82,7 @@ Legend for test notes: 💻 laptop · 📱 phone (same Wi-Fi, `https://<laptop-L
   3D − / + buttons and the value label (`a = 2`) for every station, multi-row for stations 3 (m, b), 7 (a + sign) and 9 (a, b, c). Mouse click and tap; values clamp to their ranges and skip forbidden values; the curve and its label update live (rebuilt once per change, never per frame).
   *Test:* 💻 at every station, − / + change the value in steps, stop at min / max, and the curve updates instantly; station 9 skips a = 0. 📱 the same with taps.
 
-- [ ] **B.6 Visited state**
+- [x] **B.6 Visited state**
   When the player first comes near a station: a soft synthesised chime and a small highlight, and the station is marked visited in a shared state object (used later by the HUD, the time of day and the quiz). The visited count is logged in the console.
   *Test:* 💻 reach station 1: chime once and the highlight; leaving and returning doesn't repeat it; the console shows `visited 1 / 10`, then 2, …
 
