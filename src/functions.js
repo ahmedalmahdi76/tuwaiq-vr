@@ -126,6 +126,7 @@ export const FUNCTIONS = [
     // Steps at every integer; each step is drawn on its own (closed on the left)
     breaks: () => [-2, -1, 0, 1, 2],
     gap: 1e-4,
+    endGap: 1e-4, // x = 3 itself would already jump to the next step
     f: (x, p) => p.h * Math.floor(x),
     label: (p) => (p.h === 1 ? 'f(x) = [x]' : `f(x) = ${fmt(p.h)}·[x]`),
   },
@@ -188,7 +189,7 @@ export function samplePieces(def, params, samples = 240) {
     spans.push([from, b - gap]);
     from = b + gap;
   }
-  spans.push([from, x1]);
+  spans.push([from, x1 - (def.endGap ?? 0)]);
 
   const pieces = [];
   for (const [a, b] of spans) {

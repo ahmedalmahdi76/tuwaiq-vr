@@ -49,6 +49,11 @@ AFRAME.registerComponent('math-text', {
     align: { type: 'string', default: 'center' },
     anchorX: { type: 'string', default: 'center' },
     anchorY: { type: 'string', default: 'middle' },
+    // Soft glow / outline (troika): e.g. outlineColor: '#E0457B'; outlineBlur: 0.3 (em); outlineOpacity: 0.6
+    outlineColor: { type: 'string', default: '' },
+    outlineWidth: { type: 'number', default: 0 },
+    outlineBlur: { type: 'number', default: 0 },
+    outlineOpacity: { type: 'number', default: 1 },
   },
 
   init() {
@@ -86,6 +91,15 @@ AFRAME.registerComponent('math-text', {
       t.color = d.color;
       t.maxWidth = runs.length === 1 ? d.maxWidth : Infinity;
       t.textAlign = d.align;
+      if (d.outlineColor) {
+        t.outlineColor = d.outlineColor;
+        t.outlineWidth = `${d.outlineWidth * 100}%`;
+        t.outlineBlur = `${d.outlineBlur * 100}%`;
+        t.outlineOpacity = d.outlineOpacity;
+      } else {
+        t.outlineWidth = 0;
+        t.outlineBlur = 0;
+      }
       t.position.y = run.sub ? -SUB_DROP * d.fontSize : 0;
       t.sync(() => {
         if (--pending === 0 && token === this.version) this.layout(runs);

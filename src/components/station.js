@@ -8,7 +8,8 @@
 import AFRAME from 'aframe';
 import * as THREE from 'three';
 import { STATIONS_ON_TRAIL } from '../trail.js';
-import { functionFor, defaultParams, samplePieces, windowCentre, Y_WINDOW, paramLabel } from '../functions.js';
+import { functionFor, defaultParams, windowCentre, Y_WINDOW, paramLabel } from '../functions.js';
+import { LightCurve } from '../light-curve.js';
 import { stationTheme } from './trail-path.js';
 
 // Curve layout (metres, station-local). Uniform scale keeps the shapes true (slope 1 = 45°).
@@ -37,6 +38,10 @@ export function curveToLocal(def, x, y, target = new THREE.Vector3()) {
   return target.set(CURVE.x + (x - windowCentre(def)) * CURVE.scale, CURVE.originY + y * CURVE.scale, CURVE.z);
 }
 
+const LABELS_WITHIN = 40;
+const camPos = new THREE.Vector3();
+const selfPos = new THREE.Vector3();
+
 function el(tag, attrs, parent) {
   const e = document.createElement(tag);
   for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v);
@@ -59,12 +64,14 @@ AFRAME.registerComponent('station', {
     o.rotation.y = this.stop.faceYaw;
     this.el.dataset.station = n;
 
-    // Curve (placeholder line + faint axes)
-    this.curveGroup = new THREE.Group();
-    this.el.setObject3D('curve', this.curveGroup);
-    this.lineMaterial = new THREE.LineBasicMaterial({ color: this.theme.curve });
-    this.axisMaterial = new THREE.LineBasicMaterial({ color: '#FFF4E6', transparent: true, opacity: 0.45 });
-    this.buildCurve();
+    // The curve as light (B.4) and its live formula label floating above it
+    this.curve = new LightCurve(this.def, this.theme, (x, y, t) => curveToLocal(this.def, x, y, t));
+    this.curve.update(this.params);
+    this.el.setObject3D('curve', this.curve.group);
+    this.formula = el('a-entity', {
+      position: `${CURVE.x} ${CURVE.originY + Y_WINDOW[1] * CURVE.scale + 0.32} ${CURVE.z}`,
+    }, this.el);
+    this.updateFormula();
 
     // Info panel (B.3), angled toward the viewing spot
     const panelYaw = Math.atan2(VIEW_SPOT.x - PANEL_SLOT.x, VIEW_SPOT.z - PANEL_SLOT.z);
@@ -82,6 +89,30 @@ AFRAME.registerComponent('station', {
     }, this.el);
     this.valueLabel = el('a-entity', {}, this.controls);
     this.updateValueLabel();
+
+    this.tick = AFRAME.utils.throttleTick(this.tick, 300, this);
+  },
+
+  /** Hide the small axis numbers when far away (fewer draw calls; unreadable anyway). */
+  tick() {
+    const camera = this.el.sceneEl.camera;
+    if (!camera) return;
+    camera.getWorldPosition(camPos);
+    this.el.object3D.getWorldPosition(selfPos);
+    this.distance = Math.hypot(camPos.x - selfPos.x, camPos.z - selfPos.z);
+    this.curve.setLabelsVisible(this.distance < LABELS_WITHIN);
+  },
+
+  updateFormula() {
+    this.formula.setAttribute('math-text', {
+      value: this.def.label(this.params),
+      fontSize: 0.15,
+      color: '#FFF4E6',
+      outlineColor: this.theme.curve,
+      outlineWidth: 0.06,
+      outlineBlur: 0.35,
+      outlineOpacity: 0.7,
+    });
   },
 
   updateValueLabel() {
@@ -89,37 +120,18 @@ AFRAME.registerComponent('station', {
     this.valueLabel.setAttribute('math-text', { value: text, fontSize: 0.09, color: '#FFF4E6' });
   },
 
-  buildCurve() {
-    const g = this.curveGroup;
-    g.children.forEach((c) => c.geometry.dispose());
-    g.clear();
-    const v = new THREE.Vector3();
-    for (const piece of samplePieces(this.def, this.params)) {
-      const pts = piece.map((p) => curveToLocal(this.def, p.x, p.y, v).clone());
-      g.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), this.lineMaterial));
-    }
-    // Axes: x axis across the window at y = 0, y axis at x = 0 over the y window
-    const [x0, x1] = this.def.window;
-    const axes = [
-      [curveToLocal(this.def, x0, 0), curveToLocal(this.def, x1, 0)],
-      [curveToLocal(this.def, 0, Y_WINDOW[0]), curveToLocal(this.def, 0, Y_WINDOW[1])],
-    ];
-    for (const pts of axes) g.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), this.axisMaterial));
-  },
-
   /** Change one parameter (used by the controls in B.5). */
   setParam(name, value) {
     this.params = { ...this.params, [name]: value };
-    this.buildCurve();
+    this.curve.update(this.params);
+    this.updateFormula();
     this.updateValueLabel();
     this.el.emit('paramchange', { name, value, params: this.params });
   },
 
   remove() {
-    this.curveGroup.children.forEach((c) => c.geometry.dispose());
     this.el.removeObject3D('curve');
-    this.lineMaterial.dispose();
-    this.axisMaterial.dispose();
+    this.curve.dispose();
   },
 });
 

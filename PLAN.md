@@ -74,7 +74,7 @@ Legend for test notes: 💻 laptop · 📱 phone (same Wi-Fi, `https://<laptop-L
   Unlit paper-colour card in the station tint with a simple frame: station number, name (big), subtitle, math text, life text, quote styled as a quote. Right-aligned RTL. Slowly turns to face the player. **No pop-in:** textures are created at a larger distance than where the panel becomes visible, and the panel fades in; creation is spread over frames if it stutters. Readable first; watercolour layers and flowers come in Polish.
   *Test:* 💻📱 every panel's text is complete and correct (compare with the brief); walk around a panel: it turns smoothly toward you; walking up from far away, it fades in without popping.
 
-- [ ] **B.4 Light curves for all 10 stations (simple version)** *(was 2.4)*
+- [x] **B.4 Light curves for all 10 stations (simple version)** *(was 2.4)*
   A glowing ribbon floating in the air for y = f(x) (additive, baked soft gradient), with faint axes of light and a light cream formula label with the live parameter (Fira Sans; station 5's `ₐ` drawn as a small lowered "a"). Breaks (asymptotes, floor steps) are separate pieces. No drawing animation yet.
   *Test:* 💻 each of the 10 curves has the correct shape; no stray lines across the 1/x asymptote or between floor steps; `logₐ` shows a real subscript; labels readable at sunset and at night.
 
