@@ -9,6 +9,7 @@ import AFRAME from 'aframe';
 import * as THREE from 'three';
 import { Text } from 'troika-three-text';
 import { FONTS } from '../fonts.js';
+import { applyOutline, dayFactor } from '../label-style.js';
 
 const SUBSCRIPT_CHARS = { 'ₐ': 'a', 'ₓ': 'x', '₀': '0', '₁': '1', '₂': '2', '₃': '3' };
 const SUB_SCALE = 0.62;
@@ -54,6 +55,9 @@ AFRAME.registerComponent('math-text', {
     outlineWidth: { type: 'number', default: 0 },
     outlineBlur: { type: 'number', default: 0 },
     outlineOpacity: { type: 'number', default: 1 },
+    // Day/night contrast (label-style.js): dark plum outline at sunset → accent glow at night.
+    // Set to the accent colour; overrides the outline* props and follows the time of day.
+    adaptiveOutline: { type: 'string', default: '' },
   },
 
   init() {
@@ -61,6 +65,21 @@ AFRAME.registerComponent('math-text', {
     this.el.setObject3D('text', this.group);
     this.texts = [];
     this.version = 0;
+    this.day = -1;
+    this.onTime = () => this.applyAdaptive();
+    this.el.sceneEl.addEventListener('timeofday', this.onTime);
+  },
+
+  applyAdaptive(force = false) {
+    const accent = this.data.adaptiveOutline;
+    if (!accent) return;
+    const day = dayFactor();
+    if (!force && Math.abs(day - this.day) < 0.02) return;
+    this.day = day;
+    for (const t of this.texts) {
+      applyOutline(t, accent, day);
+      t.sync();
+    }
   },
 
   update() {
@@ -91,7 +110,9 @@ AFRAME.registerComponent('math-text', {
       t.color = d.color;
       t.maxWidth = runs.length === 1 ? d.maxWidth : Infinity;
       t.textAlign = d.align;
-      if (d.outlineColor) {
+      if (d.adaptiveOutline) {
+        applyOutline(t, d.adaptiveOutline, dayFactor());
+      } else if (d.outlineColor) {
         t.outlineColor = d.outlineColor;
         t.outlineWidth = `${d.outlineWidth * 100}%`;
         t.outlineBlur = `${d.outlineBlur * 100}%`;
@@ -128,6 +149,7 @@ AFRAME.registerComponent('math-text', {
   },
 
   remove() {
+    this.el.sceneEl.removeEventListener('timeofday', this.onTime);
     this.version++;
     this.el.removeObject3D('text');
     this.texts.forEach((t) => t.dispose());

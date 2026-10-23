@@ -10,9 +10,11 @@ import * as THREE from 'three';
 import { Text } from 'troika-three-text';
 import { FONTS } from './fonts.js';
 import { samplePieces, Y_WINDOW } from './functions.js';
+import { applyOutline, dayFactor, deepAccent } from './label-style.js';
 
 const CORE_WIDTH = 0.05;
 const HALO_WIDTH = 0.26;
+const OUTLINE_WIDTH = 0.085; // deep-accent edge behind the core, for contrast against a bright sky
 const AXIS_WIDTH = 0.012;
 const TICK = 0.09;
 const CREAM = '#FFF4E6';
@@ -100,10 +102,7 @@ function makeText(value, size, anchorX, anchorY, accent) {
   t.color = CREAM;
   t.anchorX = anchorX;
   t.anchorY = anchorY;
-  t.outlineWidth = '6%';
-  t.outlineBlur = '30%';
-  t.outlineColor = accent;
-  t.outlineOpacity = 0.55;
+  applyOutline(t, accent, dayFactor());
   t.sync();
   return t;
 }
@@ -138,6 +137,9 @@ export class LightCurve {
       blending: THREE.AdditiveBlending,
       side: THREE.DoubleSide,
     });
+    this.accent = theme.curve;
+    // Thin deep-accent edge under the core: gives the curve contrast by day, fades out toward night
+    this.outlineMaterial = new THREE.MeshBasicMaterial({ color: deepAccent(theme.curve), transparent: true, opacity: 1, depthWrite: false, side: THREE.DoubleSide });
     this.axisMaterial = new THREE.MeshBasicMaterial({ color: CREAM, transparent: true, opacity: 0.5, depthWrite: false, side: THREE.DoubleSide });
     this.dashMaterial = new THREE.MeshBasicMaterial({ color: theme.curve, transparent: true, opacity: 0.8, depthWrite: false, side: THREE.DoubleSide });
     this.dotMaterial = new THREE.MeshBasicMaterial({ color: '#FFF8F2', side: THREE.DoubleSide });
@@ -145,11 +147,13 @@ export class LightCurve {
 
     this.halo = new THREE.Mesh(new THREE.BufferGeometry(), this.haloMaterial);
     this.core = new THREE.Mesh(new THREE.BufferGeometry(), this.coreMaterial);
+    this.edge = new THREE.Mesh(new THREE.BufferGeometry(), this.outlineMaterial);
     this.halo.renderOrder = 5;
+    this.edge.renderOrder = 6;
     this.core.renderOrder = 7;
     this.dots = new THREE.Group();
     this.labels = new THREE.Group();
-    this.group.add(this.halo, this.core, this.dots, this.labels);
+    this.group.add(this.halo, this.edge, this.core, this.dots, this.labels);
     this.buildAxes(theme.curve);
   }
 
@@ -187,22 +191,22 @@ export class LightCurve {
       text.position.z = this.z;
       this.labels.add(text);
     };
-    const xLabel = makeText('x', 0.11, 'left', 'middle', accent);
+    const xLabel = makeText('x', 0.13, 'left', 'middle', accent);
     xLabel.position.set(end.x + 0.07, end.y, 0);
     add(xLabel);
-    const yLabel = makeText('y', 0.11, 'center', 'bottom', accent);
+    const yLabel = makeText('y', 0.13, 'center', 'bottom', accent);
     yLabel.position.set(top.x, top.y + 0.06, 0);
     add(yLabel);
     for (let x = Math.ceil(x0); x < x1; x++) {
       if (x === 0 || x % 2 !== 0 || x === x0) continue;
       const p = this.local(x, 0);
-      const t = makeText(fmtTick(x), 0.07, 'center', 'top', accent);
+      const t = makeText(fmtTick(x), 0.09, 'center', 'top', accent);
       t.position.set(p.x, p.y - 0.07, 0);
       add(t);
     }
     for (const y of [-2, 2, 4]) {
       const p = this.local(0, y);
-      const t = makeText(fmtTick(y), 0.07, 'right', 'middle', accent);
+      const t = makeText(fmtTick(y), 0.09, 'right', 'middle', accent);
       t.position.set(p.x - 0.07, p.y, 0);
       add(t);
     }
@@ -230,7 +234,9 @@ export class LightCurve {
     const pieces = samplePieces(this.def, params).map((piece) => piece.map((p) => this.local(p.x, p.y)));
     this.core.geometry.dispose();
     this.halo.geometry.dispose();
+    this.edge.geometry.dispose();
     this.core.geometry = ribbonGeometry(pieces, CORE_WIDTH, this.z);
+    this.edge.geometry = ribbonGeometry(pieces, OUTLINE_WIDTH, this.z - 0.002);
     this.halo.geometry = ribbonGeometry(pieces, HALO_WIDTH, this.z - 0.004);
     this.updateDots(pieces);
   }
@@ -268,15 +274,25 @@ export class LightCurve {
     this.haloMaterial.uniforms.uBoost.value = v;
   }
 
+  /** Day/night contrast: 1 = sunset (dark edge + dark label outlines), 0 = night (glow). */
+  setDay(day) {
+    this.outlineMaterial.opacity = day;
+    this.edge.visible = day > 0.01;
+    for (const t of this.labels.children) {
+      applyOutline(t, this.accent, day);
+      t.sync();
+    }
+  }
+
   setLabelsVisible(visible) {
     this.labels.visible = visible;
   }
 
   dispose() {
-    for (const m of [this.core, this.halo, this.axes, this.asymptotes]) m?.geometry.dispose();
+    for (const m of [this.core, this.halo, this.edge, this.axes, this.asymptotes]) m?.geometry.dispose();
     this.dots.children.forEach((m) => m.geometry.dispose());
     this.labels.children.forEach((t) => t.dispose());
-    for (const mat of [this.coreMaterial, this.haloMaterial, this.axisMaterial, this.dashMaterial, this.dotMaterial, this.ringMaterial]) mat.dispose();
+    for (const mat of [this.coreMaterial, this.haloMaterial, this.outlineMaterial, this.axisMaterial, this.dashMaterial, this.dotMaterial, this.ringMaterial]) mat.dispose();
   }
 }
 

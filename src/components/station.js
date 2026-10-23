@@ -10,6 +10,7 @@ import * as THREE from 'three';
 import { STATIONS_ON_TRAIL } from '../trail.js';
 import { functionFor, defaultParams, windowCentre, Y_WINDOW, stepParam, clampParam } from '../functions.js';
 import { LightCurve } from '../light-curve.js';
+import { dayFactor } from '../label-style.js';
 import { markVisited } from '../visited.js';
 import { playChime, userHasInteracted } from '../sound.js';
 import { stationTheme } from './trail-path.js';
@@ -81,6 +82,15 @@ AFRAME.registerComponent('station', {
     this.curve = new LightCurve(this.def, this.theme, (x, y, t) => curveToLocal(this.def, x, y, t));
     this.curve.update(this.params);
     this.el.setObject3D('curve', this.curve.group);
+    this.curve.setDay(dayFactor());
+    this.lastDay = dayFactor();
+    this.onTime = () => {
+      const day = dayFactor();
+      if (Math.abs(day - this.lastDay) < 0.02) return;
+      this.lastDay = day;
+      this.curve.setDay(day);
+    };
+    this.el.sceneEl.addEventListener('timeofday', this.onTime);
     this.formula = el('a-entity', {
       position: `${CURVE.x} ${CURVE.originY + Y_WINDOW[1] * CURVE.scale + 0.32} ${CURVE.z}`,
     }, this.el);
@@ -148,10 +158,7 @@ AFRAME.registerComponent('station', {
       value: this.def.label(this.params),
       fontSize: 0.15,
       color: '#FFF4E6',
-      outlineColor: this.theme.curve,
-      outlineWidth: 0.06,
-      outlineBlur: 0.35,
-      outlineOpacity: 0.7,
+      adaptiveOutline: this.theme.curve,
     });
   },
 
@@ -172,6 +179,7 @@ AFRAME.registerComponent('station', {
   },
 
   remove() {
+    this.el.sceneEl.removeEventListener('timeofday', this.onTime);
     this.el.removeObject3D('curve');
     this.curve.dispose();
   },

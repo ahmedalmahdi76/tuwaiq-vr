@@ -127,10 +127,7 @@ AFRAME.registerComponent('param-controls', {
         value: paramLabel(r.param, params[r.param.name]),
         fontSize: r.param.kind === 'sign' ? 0.15 : 0.11,
         color: CREAM,
-        outlineColor: theme.curve,
-        outlineWidth: 0.06,
-        outlineBlur: 0.35,
-        outlineOpacity: 0.7,
+        adaptiveOutline: theme.curve,
       });
     }
   },
