@@ -3,6 +3,7 @@
 // (F toggles back to walking). The normal start position is handled by player-move.
 import { PLAIN_Y, edgeZ, plateauHeight } from '../terrain.js';
 import { TRAIL_START } from '../trail.js';
+import { DEV } from './dev-mode.js';
 
 function presets() {
   const hx = 140; // a headland
@@ -47,5 +48,5 @@ export function setupCameraPresets() {
   }
 
   const keys = { Digit1: 'spawn', Digit2: 'edge', Digit3: 'aerial', Digit4: 'below', Digit5: 'trail' };
-  window.addEventListener('keydown', (e) => keys[e.code] && go(keys[e.code]));
+  if (DEV) window.addEventListener('keydown', (e) => keys[e.code] && go(keys[e.code]));
 }

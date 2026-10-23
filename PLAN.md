@@ -180,7 +180,7 @@ Each F step gets its test notes when it starts.
 
 ## Wrap-up — going online
 
-- [ ] **W.1 Minimum phone support** — HTML start screen (title, credit, «ابدأ الرحلة»: unlocks sound, asks iPhone motion permission; touch still works if denied), touch joystick bottom-left + drag-to-look + gyro when allowed, tapping 3D buttons, «المحطة السابقة» / «المحطة التالية» buttons that glide to the standing spots (all devices), medium quality on phones, iPhone memory kept low, dev tools hidden unless `?dev`.
+- [x] **W.1 Minimum phone support** — HTML start screen (title, credit, «ابدأ الرحلة»: unlocks sound, asks iPhone motion permission; touch still works if denied), touch joystick bottom-left + drag-to-look + gyro when allowed, tapping 3D buttons, «المحطة السابقة» / «المحطة التالية» buttons that glide to the standing spots (all devices), medium quality on phones, iPhone memory kept low, dev tools hidden unless `?dev`.
 - [ ] **W.2 GitHub Pages deploy** — workflow (base `/tuwaiq-vr/`, deploy on push to main), remote `ahmedalmahdi76/tuwaiq-vr`, push, Pages source = GitHub Actions, live check of https://ahmedalmahdi76.github.io/tuwaiq-vr/, QR code instructions.
 
 ## Phase G — Final checks and deploy — ⛔ not doing (for now), except deploy (W.2)

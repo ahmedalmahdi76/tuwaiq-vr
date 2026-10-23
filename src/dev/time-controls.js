@@ -3,6 +3,7 @@
 //   ?time=cycle   loop slowly 0 → 1 → 0 (for testing on a phone without a keyboard)
 //   [ and ]       step the journey down / up by 0.1 (eases there)
 import { journey, setJourney } from '../time-of-day.js';
+import { DEV } from './dev-mode.js';
 
 const CYCLE_SECONDS = 60;
 
@@ -23,7 +24,7 @@ export function setupTimeControls() {
     setJourney(Number(param), { instant: true });
   }
 
-  window.addEventListener('keydown', (e) => {
+  if (DEV) window.addEventListener('keydown', (e) => {
     if (e.code === 'BracketRight') setJourney(Math.round((journey.target + 0.1) * 10) / 10);
     if (e.code === 'BracketLeft') setJourney(Math.round((journey.target - 0.1) * 10) / 10);
   });

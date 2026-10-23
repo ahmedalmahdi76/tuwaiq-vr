@@ -8,7 +8,8 @@
 import AFRAME from 'aframe';
 import * as THREE from 'three';
 import { edgeZ, terrainHeight, WORLD } from '../terrain.js';
-import { STATIONS_ON_TRAIL, LOOKOUT, TRAIL_START, pointAt } from '../trail.js';
+import { STATIONS_ON_TRAIL, LOOKOUT, TRAIL_START, pointAt, nearestS, pathBetween } from '../trail.js';
+import { DEV } from '../dev/dev-mode.js';
 
 const RIM_MARGIN = 2;
 const RIM_SEARCH = 10; // look ±10 m along x for the nearest rim point
@@ -90,8 +91,10 @@ AFRAME.registerComponent('player-move', {
     this.pressed = new Set();
     this.shift = false;
     this.mode = 'walk';
+    this.analog = { x: 0, y: 0 }; // touch joystick (x = right, y = forward), −1…1
+    this.glide = null;
     this.onKeyDown = (e) => {
-      if (e.code === 'KeyF') {
+      if (e.code === 'KeyF' && DEV) {
         this.setMode(this.mode === 'walk' ? 'fly' : 'walk');
         return;
       }
@@ -139,11 +142,53 @@ AFRAME.registerComponent('player-move', {
     this.setMode('walk');
   },
 
+  /** Current camera yaw (including phone tilt). */
+  cameraYaw() {
+    return this.cameraEl()?.object3D.rotation.y ?? 0;
+  },
+
   look(yaw, pitch) {
     const lc = this.cameraEl()?.components['look-controls'];
     if (!lc) return;
-    lc.yawObject.rotation.y = yaw;
+    // With tilt-to-look, the phone's own rotation is added on top: compensate so the view ends at yaw
+    lc.yawObject.rotation.y = yaw - (lc.magicWindowDeltaEuler?.y || 0);
     lc.pitchObject.rotation.x = pitch;
+  },
+
+  /** Glide along the trail to (x, z), turning to yaw on the way. Any walking input cancels it. */
+  glideTo(x, z, yaw) {
+    const p = this.el.object3D.position;
+    const s0 = nearestS(p.x, p.z);
+    const s1 = nearestS(x, z);
+    const pts = [{ x: p.x, z: p.z }, ...pathBetween(s0, s1).slice(1, -1), { x, z }];
+    let len = 0;
+    for (let i = 1; i < pts.length; i++) len += Math.hypot(pts[i].x - pts[i - 1].x, pts[i].z - pts[i - 1].z);
+    this.setMode('walk');
+    this.glide = { pts, len, t: 0, dur: Math.max(1.2, len / 7), yaw0: this.cameraYaw(), yaw1: yaw, pitch0: this.cameraEl()?.components['look-controls']?.pitchObject.rotation.x || 0 };
+  },
+
+  stepGlide(dt) {
+    const g = this.glide;
+    g.t = Math.min(1, g.t + dt / g.dur);
+    const k = g.t * g.t * (3 - 2 * g.t);
+    // Position at distance k·len along the polyline
+    let want = k * g.len;
+    let i = 1;
+    for (; i < g.pts.length - 1; i++) {
+      const seg = Math.hypot(g.pts[i].x - g.pts[i - 1].x, g.pts[i].z - g.pts[i - 1].z);
+      if (want <= seg) break;
+      want -= seg;
+    }
+    const a = g.pts[i - 1];
+    const b = g.pts[i];
+    const seg = Math.hypot(b.x - a.x, b.z - a.z) || 1;
+    const f = Math.min(1, want / seg);
+    const p = this.el.object3D.position;
+    p.x = a.x + (b.x - a.x) * f;
+    p.z = a.z + (b.z - a.z) * f;
+    const turn = Math.atan2(Math.sin(g.yaw1 - g.yaw0), Math.cos(g.yaw1 - g.yaw0));
+    this.look(g.yaw0 + turn * k, g.pitch0 * (1 - k));
+    if (g.t >= 1) this.glide = null;
   },
 
   setMode(mode) {
@@ -168,6 +213,16 @@ AFRAME.registerComponent('player-move', {
     if (this.pressed.has('b')) az += 1;
     if (this.pressed.has('l')) ax -= 1;
     if (this.pressed.has('r')) ax += 1;
+    // Touch joystick (dead zone so a resting thumb doesn't drift)
+    const stick = Math.hypot(this.analog.x, this.analog.y);
+    if (stick > 0.15) {
+      ax += this.analog.x;
+      az -= this.analog.y;
+    }
+    if (this.glide) {
+      if (ax || az) this.glide = null; // walking cancels the glide
+      else this.stepGlide(dt);
+    }
 
     if (this.mode === 'fly') {
       if (!ax && !az) return;
@@ -180,7 +235,8 @@ AFRAME.registerComponent('player-move', {
     }
 
     if (ax || az) {
-      const len = Math.hypot(ax, az);
+      // Keys give full speed; the joystick scales with how far it is pushed
+      const len = Math.max(1, Math.hypot(ax, az));
       const yaw = cam.rotation.y;
       const speed = (this.shift ? this.data.run : this.data.speed) * dt;
       // Forward on the ground = (−sin yaw, −cos yaw); right = (cos yaw, −sin yaw)

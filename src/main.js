@@ -19,12 +19,18 @@ import { runArabicTest } from './dev/arabic-test.js';
 import { setupCameraPresets } from './dev/camera-presets.js';
 import { setupFpsMeter } from './dev/fps-meter.js';
 import { setupTimeControls } from './dev/time-controls.js';
+import { setupStartScreen } from './ui/start-screen.js';
+import { setupTouchControls } from './ui/touch-controls.js';
+import { setupStationNav } from './ui/station-nav.js';
 
 console.info(`[quality] ${quality.level} (${quality.source}, ${quality.device})`);
 applyQuality(document.querySelector('a-scene'));
 arabicFontsReady(); // start loading Tajawal right away (used by canvas text and HTML overlays)
 setupCameraPresets();
 setupFpsMeter(); // ?stats
-setupTimeControls(); // ?time=0.6 | ?time=cycle, keys [ ]
+setupTimeControls(); // ?time=0.6 | ?time=cycle, keys [ ] (with ?dev)
+setupStartScreen();
+setupTouchControls();
+setupStationNav();
 // Arabic text test boards (steps 1.2–1.3b) only with ?text, so they don't block the view
 if (new URLSearchParams(location.search).has('text')) runArabicTest();

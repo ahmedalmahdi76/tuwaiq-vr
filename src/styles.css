@@ -81,3 +81,120 @@ body {
 }
 .dev-reference .dev-ok { color: #1b7a3a; }
 .dev-reference .dev-fail { color: #b00020; font-weight: 700; }
+
+/* ---------- Start screen ---------- */
+.start-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: linear-gradient(180deg, rgba(181, 154, 184, 0.92) 0%, rgba(233, 169, 184, 0.9) 55%, rgba(247, 201, 139, 0.9) 100%);
+  direction: rtl;
+  font-family: 'Tajawal', sans-serif;
+  transition: opacity 0.6s ease;
+}
+.start-hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+.start-card {
+  max-width: 560px;
+  width: 100%;
+  padding: 32px 24px 28px;
+  border-radius: 22px;
+  background: rgba(246, 227, 234, 0.95);
+  border: 2px solid #c07a9a;
+  box-shadow: 0 14px 40px rgba(59, 31, 43, 0.25);
+  text-align: center;
+  color: #3b1f2b;
+}
+.start-title {
+  margin: 0 0 14px;
+  font-size: clamp(26px, 6.5vw, 40px);
+  font-weight: 700;
+  line-height: 1.35;
+}
+.start-credit {
+  margin: 0 0 26px;
+  font-size: clamp(15px, 4vw, 19px);
+  color: #7a4a62;
+}
+.start-button {
+  font-family: inherit;
+  font-size: clamp(19px, 5vw, 24px);
+  font-weight: 700;
+  padding: 14px 40px;
+  border: none;
+  border-radius: 999px;
+  background: #e0457b;
+  color: #fff;
+  cursor: pointer;
+  box-shadow: 0 6px 18px rgba(224, 69, 123, 0.4);
+  -webkit-tap-highlight-color: transparent;
+}
+.start-button:active {
+  transform: scale(0.97);
+}
+
+/* ---------- Station navigation (all devices) ---------- */
+.station-nav {
+  position: fixed;
+  bottom: max(14px, env(safe-area-inset-bottom));
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 20;
+  display: flex;
+  gap: 10px;
+  direction: rtl;
+}
+.station-nav button {
+  font-family: 'Tajawal', sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  padding: 10px 18px;
+  border-radius: 999px;
+  border: 1.5px solid rgba(255, 244, 230, 0.85);
+  background: rgba(59, 31, 43, 0.55);
+  color: #fff4e6;
+  cursor: pointer;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  -webkit-tap-highlight-color: transparent;
+  white-space: nowrap;
+}
+.station-nav button:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+.not-started .station-nav,
+.not-started .joystick {
+  display: none;
+}
+
+/* ---------- Touch joystick (bottom-left) ---------- */
+.joystick {
+  position: fixed;
+  left: max(18px, env(safe-area-inset-left));
+  bottom: max(70px, calc(env(safe-area-inset-bottom) + 60px));
+  width: 124px;
+  height: 124px;
+  border-radius: 50%;
+  background: rgba(255, 244, 230, 0.18);
+  border: 2px solid rgba(255, 244, 230, 0.55);
+  z-index: 20;
+  touch-action: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.joystick-knob {
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  background: rgba(255, 244, 230, 0.7);
+  box-shadow: 0 2px 8px rgba(59, 31, 43, 0.3);
+  pointer-events: none;
+}

@@ -7,9 +7,9 @@ export const LEVELS = ['low', 'medium', 'high'];
 
 // Settings per level. Later effects (particles, clouds, rays…) add their own entries here.
 const SETTINGS = {
-  low: { maxPixelRatio: 1, terrainStep: 6, paperSize: 256, wadiSize: 512, skySparkles: false, sunRays: false, motes: 50, clouds: 3 },
-  medium: { maxPixelRatio: 1.5, terrainStep: 4, paperSize: 256, wadiSize: 1024, skySparkles: true, sunRays: true, motes: 130, clouds: 5 },
-  high: { maxPixelRatio: 2, terrainStep: 3, paperSize: 512, wadiSize: 2048, skySparkles: true, sunRays: true, motes: 240, clouds: 8 },
+  low: { maxPixelRatio: 1, terrainStep: 6, paperSize: 256, wadiSize: 512, skySparkles: false, sunRays: false, motes: 50, clouds: 3, textPxPerM: 640 },
+  medium: { maxPixelRatio: 1.5, terrainStep: 4, paperSize: 256, wadiSize: 1024, skySparkles: true, sunRays: true, motes: 130, clouds: 5, textPxPerM: 768 },
+  high: { maxPixelRatio: 2, terrainStep: 3, paperSize: 512, wadiSize: 2048, skySparkles: true, sunRays: true, motes: 240, clouds: 8, textPxPerM: 1024 },
 };
 
 const DEFAULT_FOR_DEVICE = { desktop: 'high', phone: 'medium', headset: 'medium' };
@@ -17,6 +17,8 @@ const DEFAULT_FOR_DEVICE = { desktop: 'high', phone: 'medium', headset: 'medium'
 export function detectDevice() {
   if (/OculusBrowser|Quest|Pico|Wolvic/i.test(navigator.userAgent)) return 'headset';
   if (AFRAME.utils.device.isMobile()) return 'phone';
+  // iPadOS reports itself as a Mac: treat a touch 'Mac' as a tablet (same budget as a phone)
+  if (/Macintosh/.test(navigator.userAgent) && navigator.maxTouchPoints > 1) return 'phone';
   return 'desktop';
 }
 

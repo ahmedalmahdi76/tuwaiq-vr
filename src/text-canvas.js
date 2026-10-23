@@ -3,10 +3,12 @@
 // by everything that affects the drawing, and freed when the last user releases them.
 import * as THREE from 'three';
 import { ARABIC_FAMILY } from './fonts.js';
+import { quality } from './quality.js';
 
 // Resolution: 1024 px per metre. A Quest-class headset shows ~20 px per degree; at 1 m a metre spans
 // ~53°, i.e. ~1060 screen px, so text stays sharp down to about 1 m (closer than normal reading).
-export const PX_PER_M = 1024;
+// Phones use less (quality.textPxPerM: 640 / 768 / 1024) to keep texture memory low on iPhone Safari.
+export const PX_PER_M = quality.textPxPerM;
 // Big text (titles) doesn't need 1024 px/m: cap the em size so its textures stay small.
 const MAX_EM_PX = 128;
 // Largest texture side. Blocks that would be bigger are drawn at a lower px/m.
