@@ -34,7 +34,8 @@ export const PANEL_SLOT = {
   z: VIEW_SPOT.z - Math.cos(PANEL_ANGLE) * 3,
 };
 // Controls: under the curve, in front of it, turned toward VIEW_SPOT
-export const CONTROLS_SLOT = { x: CURVE.x, y: 1.15, z: 0.8 };
+// Top control row at 1.0 m; further rows stack downward (so they never touch the curve's lower end)
+export const CONTROLS_SLOT = { x: CURVE.x, y: 1.0, z: 0.8 };
 
 /** Function coordinates → station-local position. */
 export function curveToLocal(def, x, y, target = new THREE.Vector3()) {

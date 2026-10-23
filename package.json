@@ -9,7 +9,8 @@
     "preview": "vite preview",
     "check:content": "node scripts/check-content.mjs",
     "check:functions": "node scripts/check-functions.mjs",
-    "check:layout": "node scripts/check-layout.mjs"
+    "check:layout": "node scripts/check-layout.mjs",
+    "check:stations": "node scripts/check-stations.mjs"
   },
   "dependencies": {
     "aframe": "1.8.0",

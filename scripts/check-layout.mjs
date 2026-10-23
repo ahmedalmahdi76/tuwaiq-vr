@@ -62,6 +62,9 @@ STATIONS_ON_TRAIL.forEach((st, i) => {
   const eye = st.trail;
   const own = Object.fromEntries(Object.entries(parts).map(([k, q]) => [k, angleFrom(eye, st.lookYaw, q)]));
   for (const [k, a] of Object.entries(own)) if (Math.abs(a) > VISIBLE) fail(`station ${st.number}: own ${k} at ${a.toFixed(0)}° (outside the view)`);
+  // Composition centred: the curve's left edge and the panel's right edge balance around the centre
+  const balance = own.curveL + own.panelR;
+  if (Math.abs(balance) > 12) fail(`station ${st.number}: composition off-centre by ${(balance / 2).toFixed(0)}°`);
 
   let nextTxt = '      —';
   const next = STATIONS_ON_TRAIL[i + 1];

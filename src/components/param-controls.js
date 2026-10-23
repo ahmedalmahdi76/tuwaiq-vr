@@ -8,7 +8,7 @@ import { paramLabel } from '../functions.js';
 import { registerClickable } from '../interaction.js';
 
 const R = 0.1;
-const ROW_GAP = 0.24;
+const ROW_GAP = 0.22;
 const BUTTON_X = 0.55;
 const CREAM = '#FFF4E6';
 
@@ -79,8 +79,6 @@ AFRAME.registerComponent('param-controls', {
     const { def, theme } = this.station;
     this.rows = [];
     this.buttons = [];
-    const count = def.params.length;
-    const topY = ((count - 1) * ROW_GAP) / 2;
 
     this.plate = new THREE.Mesh(
       roundedPlate(1.6, 0.24, 0.1),
@@ -92,7 +90,7 @@ AFRAME.registerComponent('param-controls', {
 
     def.params.forEach((param, i) => {
       const row = document.createElement('a-entity');
-      row.object3D.position.y = topY - i * ROW_GAP;
+      row.object3D.position.y = -i * ROW_GAP; // first row at the slot, the rest below
       this.el.appendChild(row);
 
       const add = (symbol, x, dir) => {

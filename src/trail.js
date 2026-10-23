@@ -21,7 +21,7 @@ const STAND_DIST = 4; // standing spot → station origin (matches VIEW_SPOT in 
 export const TURN_DEG = 45; // stations turned this far from "square to the path" toward approaching visitors
 // At the standing spot the camera starts this much further along the path than the station itself,
 // so the station fills the view and the next station shows at its edge.
-const LOOK_BIAS_DEG = 10;
+const LOOK_BIAS_DEG = 0; // 0 = look straight at the station: composition centred (check:layout)
 const SPAWN_BEFORE = 6; // spawn this far (along the path) before station 1's standing spot
 const START_ROOM = 14; // free path behind the spawn (room for the intro panels, phase E)
 const LOOKOUT_AFTER = 46; // from station 10's standing spot to the lookout (along the path)
@@ -157,3 +157,23 @@ export const TRAIL_START = makePoint('start', START_ROOM);
 export const LOOKOUT = { ...makePoint('lookout', TRAIL_LENGTH), number: null };
 // Facing the visitor arriving along the spur
 LOOKOUT.faceYaw = Math.atan2(-LOOKOUT.tx, -LOOKOUT.tz);
+
+/** Arc length of the trail point nearest to (x, z). */
+export function nearestS(x, z) {
+  let best = Infinity;
+  let s = 0;
+  for (const p of TRAIL) {
+    const d = (p.x - x) ** 2 + (p.z - z) ** 2;
+    if (d < best) {
+      best = d;
+      s = p.s;
+    }
+  }
+  return s;
+}
+
+/** Points along the trail from arc length s0 to s1 (either direction), about 1 m apart. */
+export function pathBetween(s0, s1) {
+  const n = Math.max(2, Math.ceil(Math.abs(s1 - s0)));
+  return Array.from({ length: n + 1 }, (_, i) => pointAt(s0 + ((s1 - s0) * i) / n));
+}

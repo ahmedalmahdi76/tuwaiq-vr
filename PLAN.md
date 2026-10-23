@@ -7,6 +7,8 @@ How to use this file:
 - Changes to this plan happen only after you agree.
 - Every finished step ends with **one git commit**, message like `Step A.1: trail and station markers`, so we can go back to any step.
 
+**Wrap-up (after B.6): going online now.** Phases C, D, F and most of E and G are **not doing** for now. Remaining work: B.7 review, W.1 minimum phone support, W.2 GitHub Pages deploy.
+
 **Priority (since V.4): content first, visual polish later.** Phases A–E build the complete experience in a clean, readable form; Phase F (Polish) brings it up to the art direction in brief §11.
 
 Legend for test notes: 💻 laptop · 📱 phone (same Wi-Fi, `https://<laptop-LAN-IP>:5173`) · 🥽 VR (Immersive Web Emulator in Chrome).
@@ -86,13 +88,13 @@ Legend for test notes: 💻 laptop · 📱 phone (same Wi-Fi, `https://<laptop-L
   When the player first comes near a station: a soft synthesised chime and a small highlight, and the station is marked visited in a shared state object (used later by the HUD, the time of day and the quiz). The visited count is logged in the console.
   *Test:* 💻 reach station 1: chime once and the highlight; leaving and returning doesn't repeat it; the console shows `visited 1 / 10`, then 2, …
 
-- [ ] **B.7 Review checkpoint**
+- [x] **B.7 Review checkpoint**
   You walk all 10 stations and check every text and curve; I fix what you find. Update `CLAUDE.md`.
   *Test:* 💻📱 your review notes are addressed.
 
 ---
 
-## Phase C — Terrain landmarks
+## Phase C — Terrain landmarks — ⛔ not doing (for now)
 Each station's walkable shape, blended into `terrainHeight`. Only the affected terrain section is rebuilt when a parameter changes; the curve and the landmark update together.
 
 - [ ] **C.1 Landmark system + station 1 V-canyon** *(was 2.6)* — the trail goes down one side and up the other; `a` changes the steepness (clamped to stay walkable).
@@ -120,7 +122,7 @@ Each station's walkable shape, blended into `terrainHeight`. Only the affected t
 
 ---
 
-## Phase D — Closing activities
+## Phase D — Closing activities — ⛔ not doing (for now)
 
 - [ ] **D.1 Closing lookout area** *(was 5.1)* — lookout on the cliff edge after station 10, title «أنشطة ختامية», a start button.
   *Test:* 💻 walk from station 10 to the lookout and start the activities.
@@ -133,7 +135,7 @@ Each station's walkable shape, blended into `terrainHeight`. Only the affected t
 
 ---
 
-## Phase E — Start screen and controls for everyone
+## Phase E — Start screen and controls for everyone — ⛔ not doing (for now); a minimal start screen, touch controls and next / previous are done in W.1
 
 - [ ] **E.1 Start screen (HTML overlay) + device detection** *(was 1.8)* — title, credit, «ابدأ الرحلة» (also where iOS asks for motion permission).
   *Test:* 💻📱 overlay appears first, Arabic correct, button starts the scene.
@@ -152,7 +154,7 @@ Each station's walkable shape, blended into `terrainHeight`. Only the affected t
 
 ---
 
-## Phase F — Polish (brief §11 art direction)
+## Phase F — Polish (brief §11 art direction) — ⛔ not doing (for now)
 Everything decorative, moved here from the earlier phases. §11 stays the target.
 
 - [ ] **F.1 Lantern + dim trail** *(was V.5)* — low-poly stone lantern (emissive core, additive glow sprite, baked light pool; no real lights) at every station; the trail stays dim until lit.
@@ -176,7 +178,12 @@ Each F step gets its test notes when it starts.
 
 ---
 
-## Phase G — Final checks and deploy
+## Wrap-up — going online
+
+- [ ] **W.1 Minimum phone support** — HTML start screen (title, credit, «ابدأ الرحلة»: unlocks sound, asks iPhone motion permission; touch still works if denied), touch joystick bottom-left + drag-to-look + gyro when allowed, tapping 3D buttons, «المحطة السابقة» / «المحطة التالية» buttons that glide to the standing spots (all devices), medium quality on phones, iPhone memory kept low, dev tools hidden unless `?dev`.
+- [ ] **W.2 GitHub Pages deploy** — workflow (base `/tuwaiq-vr/`, deploy on push to main), remote `ahmedalmahdi76/tuwaiq-vr`, push, Pages source = GitHub Actions, live check of https://ahmedalmahdi76.github.io/tuwaiq-vr/, QR code instructions.
+
+## Phase G — Final checks and deploy — ⛔ not doing (for now), except deploy (W.2)
 
 - [ ] **G.1 Loading screen with progress bar** *(was 6.1)*
 - [ ] **G.2 Performance pass** *(was 6.2)* — tune the automatic quality choice and counts.
