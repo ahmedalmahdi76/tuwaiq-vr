@@ -19,8 +19,20 @@ function ensureContext() {
   return ctx;
 }
 
+let interacted = false;
+
+/** True after the visitor's first key / click / tap (sound is allowed from then on). */
+export function userHasInteracted() {
+  return interacted;
+}
+
+function onFirstGesture() {
+  interacted = true;
+  ensureContext();
+}
+
 for (const type of ['keydown', 'mousedown', 'touchend']) {
-  window.addEventListener(type, ensureContext, { once: true, capture: true });
+  window.addEventListener(type, onFirstGesture, { once: true, capture: true });
 }
 
 // A soft pentatonic scale, so every station's chime sounds a little different but always gentle.
@@ -30,7 +42,12 @@ const NOTES = [523.25, 587.33, 659.25, 783.99, 880.0]; // C5 D5 E5 G5 A5
 export function playChime(seed = 0) {
   if (sound.muted) return;
   const ac = ensureContext();
-  if (!ac || ac.state !== 'running') return;
+  if (!ac) return;
+  // Right after the first gesture the context may still be waking up: play once it runs
+  if (ac.state !== 'running') {
+    ac.resume().then(() => playChime(seed)).catch(() => {});
+    return;
+  }
   const now = ac.currentTime;
   const root = NOTES[seed % NOTES.length];
   [root, root * 1.5].forEach((freq, i) => {

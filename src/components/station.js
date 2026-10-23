@@ -11,7 +11,7 @@ import { STATIONS_ON_TRAIL } from '../trail.js';
 import { functionFor, defaultParams, windowCentre, Y_WINDOW, stepParam, clampParam } from '../functions.js';
 import { LightCurve } from '../light-curve.js';
 import { markVisited } from '../visited.js';
-import { playChime } from '../sound.js';
+import { playChime, userHasInteracted } from '../sound.js';
 import { stationTheme } from './trail-path.js';
 
 // Curve layout (metres, station-local). Uniform scale keeps the shapes true (slope 1 = 45°).
@@ -134,8 +134,10 @@ AFRAME.registerComponent('station', {
     this.el.object3D.getWorldPosition(selfPos);
     this.distance = Math.hypot(camPos.x - selfPos.x, camPos.z - selfPos.z);
     this.curve.setLabelsVisible(this.distance < LABELS_WITHIN);
-    // The visited moment: once per station per page load
-    if (this.distance < VISIT_RADIUS && markVisited(this.data.number)) {
+    // The visited moment: once per station per page load. Not before the first key / click / tap:
+    // a ?station= link starts inside the radius, and the chime could not play yet. If the visitor is
+    // still here when they first interact, the full moment plays then.
+    if (this.distance < VISIT_RADIUS && userHasInteracted() && markVisited(this.data.number)) {
       playChime(this.data.number - 1);
       this.glowT = 0;
     }
