@@ -7,8 +7,8 @@ import { TRAIL_START } from '../trail.js';
 function presets() {
   const hx = 140; // a headland
   return {
-    // Start of the trail, facing the cliff edge and the sunset
-    spawn: { walk: true, pos: [TRAIL_START.x, 0, TRAIL_START.z], yaw: 0, pitch: -0.05 },
+    // Spawn on the trail, looking along it toward station 1
+    spawn: { walk: true, pos: [TRAIL_START.x, 0, TRAIL_START.z], yaw: TRAIL_START.lookYaw, pitch: -0.05 },
     // On the tip of a headland, looking back along the layered cliff face
     edge: { pos: [hx, plateauHeight(hx, edgeZ(hx) + 2), edgeZ(hx) + 2], yaw: 1.25, pitch: -0.3 },
     // High above the plateau, looking out over the rim and the plain
@@ -16,7 +16,7 @@ function presets() {
     // Down on the plain, looking up at the escarpment
     below: { pos: [60, PLAIN_Y + 1, -420], yaw: Math.PI, pitch: 0.18 },
     // High above the start, looking along the whole trail toward the lookout
-    trail: { pos: [-40, 75, 110], yaw: -1.25, pitch: -0.42 },
+    trail: { pos: [-100, 55, 90], yaw: -1.3, pitch: -0.42 },
   };
 }
 

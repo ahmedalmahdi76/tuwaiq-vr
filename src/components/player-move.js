@@ -65,7 +65,7 @@ function clampToWorld(x, z) {
   return [x, z];
 }
 
-/** Where to stand for ?station=N (4 m in front of the station, facing it) or ?station=end. */
+/** Where to stand for ?station=N (its standing spot on the path) or ?station=end. */
 export function standingSpot(which) {
   if (which === 'end') {
     const p = pointAt(LOOKOUT.s - 4);
@@ -73,11 +73,8 @@ export function standingSpot(which) {
   }
   const st = STATIONS_ON_TRAIL[Number(which) - 1];
   if (!st) return null;
-  return {
-    x: st.x + Math.sin(st.faceYaw) * 4,
-    z: st.z + Math.cos(st.faceYaw) * 4,
-    yaw: st.faceYaw, // camera looks along −z of its yaw: toward the station and the cliff
-  };
+  // On the path at the station's standing spot, looking at it (the next station shows at the edge)
+  return { x: st.trail.x, z: st.trail.z, yaw: st.lookYaw };
 }
 
 const forward = new THREE.Vector3();
@@ -130,7 +127,7 @@ AFRAME.registerComponent('player-move', {
 
   placeAtStart() {
     const param = new URLSearchParams(location.search).get('station');
-    const spot = (param && standingSpot(param)) || { x: TRAIL_START.x, z: TRAIL_START.z, yaw: 0 };
+    const spot = (param && standingSpot(param)) || { x: TRAIL_START.x, z: TRAIL_START.z, yaw: TRAIL_START.lookYaw };
     this.teleport(spot.x, spot.z, spot.yaw);
   },
 

@@ -11,10 +11,10 @@ import * as THREE from 'three';
 import { STATIONS, toArabicDigits } from '../content.js';
 import { stationTheme } from './trail-path.js';
 
-const CREATE_AT = 35;
-const FADE_FROM = 25;
-const FADE_TO = 20;
-const FREE_AT = 45;
+const CREATE_AT = 45;
+const FADE_FROM = 35;
+const FADE_TO = 30;
+const FREE_AT = 55;
 
 const WIDTH = 1.8;
 const PAD = 0.1;
