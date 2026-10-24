@@ -1,46 +1,19 @@
 // <a-entity station-list> builds the 10 stations from content.js + functions.js + trail.js.
-// <a-entity station="number: N"> is one station. Local frame: +z points at the trail, −z toward the
-// cliff; +x is the visitor's right. The visitor's standing spot (?station=N) is VIEW_SPOT, 4 m in front.
-// Composed so that from there, in a normal laptop view and without turning:
-//   - the curve floats slightly left of centre, 4.5 m away, with the cliff view behind it
-//   - the info panel stands slightly right, 3 m away, turned toward the visitor
-//   - the parameter controls sit under the curve at hand height, in front of it
+// <a-entity station="number: N"> is one station: the diorama plinth (Phase N) with the parameter
+// controls on its front face, the light curve above it, and the info panel to the right.
+// Layout constants live in station-layout.js.
 import AFRAME from 'aframe';
 import * as THREE from 'three';
 import { STATIONS_ON_TRAIL } from '../trail.js';
-import { functionFor, defaultParams, windowCentre, Y_WINDOW, stepParam, clampParam } from '../functions.js';
+import { functionFor, defaultParams, Y_WINDOW, stepParam, clampParam } from '../functions.js';
 import { LightCurve } from '../light-curve.js';
 import { dayFactor } from '../label-style.js';
 import { markVisited } from '../visited.js';
 import { playChime, userHasInteracted } from '../sound.js';
 import { stationTheme } from './trail-path.js';
+import { VIEW_SPOT, CURVE, PLINTH, FACE, PANEL_SLOT, curveToLocal } from '../station-layout.js';
 
-// Curve layout (metres, station-local). Uniform scale keeps the shapes true (slope 1 = 45°).
-export const VIEW_SPOT = { x: 0, z: 4 }; // where the visitor stands (matches ?station=)
-
-export const CURVE = {
-  scale: 0.45, // metres per function unit: 6 units wide → 2.7 m
-  bottom: 1.3, // y = −3 sits 1.3 m above the ground (top, y = 4, at ≈ 4.45 m)
-  x: -1.4, // centre of the curve, left of the view's centre
-  z: -0.5, // 4.5 m from VIEW_SPOT
-};
-CURVE.originY = CURVE.bottom - Y_WINDOW[0] * CURVE.scale; // height of y = 0
-CURVE.halfWidth = 3 * CURVE.scale;
-
-// Panel centre: 3 m from VIEW_SPOT, ~22° to the right
-const PANEL_ANGLE = THREE.MathUtils.degToRad(22);
-export const PANEL_SLOT = {
-  x: VIEW_SPOT.x + Math.sin(PANEL_ANGLE) * 3,
-  z: VIEW_SPOT.z - Math.cos(PANEL_ANGLE) * 3,
-};
-// Controls: under the curve, in front of it, turned toward VIEW_SPOT
-// Top control row at 1.0 m; further rows stack downward (so they never touch the curve's lower end)
-export const CONTROLS_SLOT = { x: CURVE.x, y: 1.0, z: 0.8 };
-
-/** Function coordinates → station-local position. */
-export function curveToLocal(def, x, y, target = new THREE.Vector3()) {
-  return target.set(CURVE.x + (x - windowCentre(def)) * CURVE.scale, CURVE.originY + y * CURVE.scale, CURVE.z);
-}
+export { VIEW_SPOT, CURVE, PLINTH, FACE, PANEL_SLOT, curveToLocal };
 
 const LABELS_WITHIN = 40;
 const MORPH_TIME = 0.3; // seconds
@@ -105,12 +78,15 @@ AFRAME.registerComponent('station', {
       'info-panel': `number: ${n}`,
     }, this.el);
 
-    // Parameter controls (B.5): one row per parameter under the curve, turned toward the visitor
-    const controlsYaw = Math.atan2(VIEW_SPOT.x - CONTROLS_SLOT.x, VIEW_SPOT.z - CONTROLS_SLOT.z);
-    this.controlsEl = el('a-entity', {
-      position: `${CONTROLS_SLOT.x} ${CONTROLS_SLOT.y} ${CONTROLS_SLOT.z}`,
-      rotation: `0 ${THREE.MathUtils.radToDeg(controlsYaw)} 0`,
+    // Diorama plinth (Phase N): its top is the bottom of the curve window; the parameter controls
+    // sit in the strip at the top of its front face
+    this.plinthEl = el('a-entity', {
+      position: `${CURVE.x} ${CURVE.bottom} ${CURVE.z}`,
+      'diorama-plinth': `number: ${n}`,
     }, this.el);
+    this.controlsEl = el('a-entity', {
+      position: `${FACE.controls.x} ${FACE.strip.y} ${FACE.z + 0.01}`,
+    }, this.plinthEl);
     this.controlsEl.setAttribute('param-controls', '');
 
     this.shown = { ...this.params }; // what the curve currently shows (eases toward this.params)

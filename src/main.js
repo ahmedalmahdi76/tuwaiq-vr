@@ -15,6 +15,7 @@ import './components/info-panel.js';
 import './interaction.js';
 import './components/param-controls.js';
 import './components/station.js';
+import './components/diorama-plinth.js';
 import './components/player-move.js';
 import { runArabicTest } from './dev/arabic-test.js';
 import { setupCameraPresets } from './dev/camera-presets.js';

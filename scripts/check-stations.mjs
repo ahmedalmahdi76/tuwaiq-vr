@@ -7,7 +7,8 @@ import { FUNCTIONS, allowedValues, defaultParams, samplePieces, windowCentre, Y_
 // Keep in sync with src/components/station.js
 const CURVE = { scale: 0.45, bottom: 1.3, x: -1.4, z: -0.5 };
 CURVE.originY = CURVE.bottom - Y_WINDOW[0] * CURVE.scale;
-const CONTROLS = { x: -1.4, y: 1.0, z: 0.8, rowGap: 0.22, halfWidth: 0.7 };
+// The diorama plinth (station-layout.js): top at the window bottom, 0.6 m tall, floating
+const PLINTH = { width: 3.0, depth: 0.9, height: 0.6 };
 const CLEARANCE = 0.3; // curve at least this far above the ground
 
 let failures = 0;
@@ -48,14 +49,16 @@ for (const st of STATIONS_ON_TRAIL) {
     }
   }
   if (minClear < CLEARANCE) problems.push(`curve only ${minClear.toFixed(2)} m above the ground`);
-  // Controls: lowest row above the ground; the curve passes 1.3 m behind them (different depth)
-  const rowsN = def.params.length;
-  const lowest = CONTROLS.y - (rowsN - 1) * CONTROLS.rowGap - 0.1;
-  for (const dx of [-CONTROLS.halfWidth, 0, CONTROLS.halfWidth]) {
-    const w = world(CONTROLS.x + dx, CONTROLS.z);
-    const clear = st.y + lowest - terrainHeight(w.x, w.z);
-    if (clear < 0.4) problems.push(`controls only ${clear.toFixed(2)} m above the ground`);
+  // Plinth: its underside (with the controls on its face) floats clear of the ground everywhere
+  const underside = CURVE.bottom - PLINTH.height;
+  let plinthClear = Infinity;
+  for (const dx of [-0.5, 0, 0.5]) {
+    for (const dz of [-0.5, 0, 0.5]) {
+      const w = world(CURVE.x + dx * PLINTH.width, CURVE.z + dz * PLINTH.depth);
+      plinthClear = Math.min(plinthClear, st.y + underside - terrainHeight(w.x, w.z));
+    }
   }
+  if (plinthClear < 0.3) problems.push(`plinth only ${plinthClear.toFixed(2)} m above the ground`);
   // Ground under the panel position (the card's bottom is ≈ 0.9 m above its base)
   const pw = world(1.12, 1.22);
   const panelClear = st.y + 0.9 - terrainHeight(pw.x, pw.z);

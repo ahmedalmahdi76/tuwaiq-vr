@@ -1,16 +1,22 @@
-// <a-entity param-controls> (child of a station) — one row per parameter under the curve:
-//   ( − )   a = 2   ( + )        sign parameters (station 7):   ( ± )   +
-// Round unlit buttons (0.2 m) with a hover highlight and a small press animation; the label is
-// cream text with a soft glow in the station accent. The keyboard-selected row gets a soft plate.
+// <a-entity param-controls> — the parameter controls in the control strip on the front of the
+// diorama plinth (Phase N): one group per parameter, side by side (RTL: the first on the right):
+//   ( − )  a = 2  ( + )        sign parameters (station 7):   ( ± )  +
+// Each group sits on an unlit paper plate with dark plum text (readable on the pastel plinth at any
+// time of day). Round accent buttons with a hover highlight and a small press animation. The
+// keyboard-selected group's plate is tinted with the station accent.
 import AFRAME from 'aframe';
 import * as THREE from 'three';
 import { paramLabel } from '../functions.js';
 import { registerClickable } from '../interaction.js';
 
-const R = 0.1;
-const ROW_GAP = 0.22;
-const BUTTON_X = 0.55;
+const R = 0.07;
+const GROUP_GAP = 0.72; // centre to centre
+const GROUP_W = 0.68;
+const GROUP_H = 0.17;
+const BUTTON_X = 0.25;
 const CREAM = '#FFF4E6';
+const PAPER = '#FFF8F3';
+const PLUM = '#3B1F2B';
 
 function roundedPlate(w, h, r) {
   const s = new THREE.Shape();
@@ -40,7 +46,7 @@ function makeButton(symbol, accent, onClick) {
   group.add(disc, ring, hit);
 
   const label = document.createElement('a-entity');
-  label.setAttribute('math-text', { value: symbol, fontSize: 0.16, color: CREAM });
+  label.setAttribute('math-text', { value: symbol, fontSize: 0.12, color: CREAM });
   label.object3D.position.z = 0.004;
 
   const state = { hover: false, press: 0 };
@@ -75,23 +81,23 @@ function makeButton(symbol, accent, onClick) {
 
 AFRAME.registerComponent('param-controls', {
   init() {
-    this.station = this.el.parentEl.components.station;
+    this.stationEl = this.el.closest('[station]');
+    this.station = this.stationEl.components.station;
     const { def, theme } = this.station;
     this.rows = [];
     this.buttons = [];
 
-    this.plate = new THREE.Mesh(
-      roundedPlate(1.6, 0.24, 0.1),
-      new THREE.MeshBasicMaterial({ color: theme.curve, transparent: true, opacity: 0.28, depthWrite: false }),
-    );
-    this.plate.position.z = -0.01;
-    this.plate.visible = false;
-    this.el.object3D.add(this.plate);
-
+    this.plateGeometry = roundedPlate(GROUP_W, GROUP_H, GROUP_H / 2);
+    this.accentTint = new THREE.Color(PAPER).lerp(new THREE.Color(theme.curve), 0.35);
+    const count = def.params.length;
     def.params.forEach((param, i) => {
       const row = document.createElement('a-entity');
-      row.object3D.position.y = -i * ROW_GAP; // first row at the slot, the rest below
+      // RTL: the first parameter on the right
+      row.object3D.position.x = ((count - 1) / 2 - i) * GROUP_GAP;
       this.el.appendChild(row);
+      const plate = new THREE.Mesh(this.plateGeometry, new THREE.MeshBasicMaterial({ color: PAPER }));
+      plate.position.z = -0.004;
+      row.object3D.add(plate);
 
       const add = (symbol, x, dir) => {
         const b = makeButton(symbol, theme.curve, () => this.station.changeParam(param.name, dir));
@@ -106,34 +112,34 @@ AFRAME.registerComponent('param-controls', {
       if (param.kind === 'sign') {
         // ( ± )  then the current sign as the label
         add('±', -BUTTON_X, 0);
-        value.object3D.position.x = 0.05;
+        value.object3D.position.x = 0.06;
       } else {
         add('−', -BUTTON_X, -1);
         add('+', BUTTON_X, 1);
       }
-      this.rows.push({ param, row, value });
+      this.rows.push({ param, row, value, plate });
     });
     this.refresh();
     this.onChange = () => this.refresh();
-    this.el.parentEl.addEventListener('paramchange', this.onChange);
+    this.stationEl.addEventListener('paramchange', this.onChange);
   },
 
   refresh() {
-    const { params, theme } = this.station;
+    const { params } = this.station;
     for (const r of this.rows) {
       r.value.setAttribute('math-text', {
         value: paramLabel(r.param, params[r.param.name]),
-        fontSize: r.param.kind === 'sign' ? 0.15 : 0.11,
-        color: CREAM,
-        adaptiveOutline: theme.curve,
+        fontSize: r.param.kind === 'sign' ? 0.12 : 0.085,
+        color: PLUM,
       });
     }
   },
 
-  /** Highlight the keyboard-selected row (index), or none (−1). */
+  /** Highlight the keyboard-selected group (index), or none (−1). */
   setSelected(index) {
-    this.plate.visible = index >= 0 && this.rows.length > 1;
-    if (index >= 0) this.plate.position.y = this.rows[index].row.object3D.position.y;
+    this.rows.forEach((r, i) => {
+      r.plate.material.color.set(i === index && this.rows.length > 1 ? this.accentTint : PAPER);
+    });
   },
 
   tick(time, delta) {
@@ -142,10 +148,10 @@ AFRAME.registerComponent('param-controls', {
   },
 
   remove() {
-    this.el.parentEl?.removeEventListener('paramchange', this.onChange);
+    this.stationEl?.removeEventListener('paramchange', this.onChange);
     this.buttons.forEach((b) => b.dispose());
-    this.plate.geometry.dispose();
-    this.plate.material.dispose();
+    this.rows.forEach((r) => r.plate.material.dispose());
+    this.plateGeometry.dispose();
   },
 });
 

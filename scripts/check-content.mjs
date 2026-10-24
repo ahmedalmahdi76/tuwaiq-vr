@@ -4,6 +4,7 @@ import { fileURLToPath } from 'node:url';
 import {
   TITLE, WELCOME, AUTHOR_CREDIT, INTRO, STATIONS, UI, MOVE_HINTS, visitedText,
 } from '../src/content.js';
+import { JOURNEY_LABEL, PROPERTY_TITLES, PROPERTIES_HEADING } from '../src/nature-content.js';
 
 const briefPath = fileURLToPath(new URL('../PROJECT_BRIEF.md', import.meta.url));
 const brief = readFileSync(briefPath, 'utf8').replace(/\r/g, '');
@@ -100,6 +101,29 @@ inBrief('UI.quizWhichFunction', `**"${UI.quizWhichFunction}"`);
 inBrief('UI.quizMatchFeeling', `**"${UI.quizMatchFeeling}"`);
 inBrief('UI.thanks', `«${UI.thanks}»`);
 inBrief('UI.restart', `"${UI.restart}"`);
+
+// Phase N text (NATURE_SCENES.md, approved by the owner)
+const naturePath = fileURLToPath(new URL('../NATURE_SCENES.md', import.meta.url));
+const nature = readFileSync(naturePath, 'utf8').replace(/\r/g, '');
+function inNature(label, actual) {
+  checks++;
+  if (nature.includes(actual)) return;
+  failures++;
+  console.error(`✘ ${label}: "${actual}" not found in NATURE_SCENES.md`);
+}
+inNature('JOURNEY_LABEL', `«${JOURNEY_LABEL}»`);
+inNature('PROPERTIES_HEADING', `«${PROPERTIES_HEADING}»`);
+const propertiesTable = nature.slice(nature.indexOf('## 6.'), nature.indexOf('## 7.'));
+for (const [n, titles] of Object.entries(PROPERTY_TITLES)) {
+  const row = propertiesTable.split('\n').find((l) => l.startsWith(`| ${n} |`)) || '';
+  for (const t of titles) {
+    checks++;
+    if (!row.includes(`${t}:`)) {
+      failures++;
+      console.error(`✘ property title ${n} "${t}" not in its NATURE_SCENES.md §6 row`);
+    }
+  }
+}
 
 if (failures) {
   console.error(`\n${failures} of ${checks} checks failed.`);

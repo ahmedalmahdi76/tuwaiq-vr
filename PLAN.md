@@ -7,7 +7,7 @@ How to use this file:
 - Changes to this plan happen only after you agree.
 - Every finished step ends with **one git commit**, message like `Step A.1: trail and station markers`, so we can go back to any step.
 
-**Wrap-up (after B.6): going online now.** Phases C, D, F and most of E and G are **not doing** for now. Remaining work: B.7 review, W.1 minimum phone support, W.2 GitHub Pages deploy.
+**Now: Phase N (nature scenes, NATURE_SCENES.md).** Earlier: **Wrap-up (after B.6): going online.** Phases C, D, F and most of E and G are **not doing** for now. Remaining work: B.7 review, W.1 minimum phone support, W.2 GitHub Pages deploy.
 
 **Priority (since V.4): content first, visual polish later.** Phases A–E build the complete experience in a clean, readable form; Phase F (Polish) brings it up to the art direction in brief §11.
 
@@ -182,6 +182,18 @@ Each F step gets its test notes when it starts.
 
 - [x] **W.1 Minimum phone support** — HTML start screen (title, credit, «ابدأ الرحلة»: unlocks sound, asks iPhone motion permission; touch still works if denied), touch joystick bottom-left + drag-to-look + gyro when allowed, tapping 3D buttons, «المحطة السابقة» / «المحطة التالية» buttons that glide to the standing spots (all devices), medium quality on phones, iPhone memory kept low, dev tools hidden unless `?dev`.
 - [x] **W.2 GitHub Pages deploy** — workflow (base `/tuwaiq-vr/`, deploy on push to main), remote `ahmedalmahdi76/tuwaiq-vr`, push, Pages source = GitHub Actions, live check of https://ahmedalmahdi76.github.io/tuwaiq-vr/, QR code instructions.
+
+## Phase N — Nature scenes «رحلة على المنحنى» (spec: NATURE_SCENES.md, wins over the brief)
+
+Every station becomes a living diorama like the team's physical models (reference/diorama-*.jpg): a pastel plinth, a small faceless girl travelling along the curve, and a landscape that follows the math and the time of day.
+
+- [x] **N.1 Plinths + asset pipeline** — plinths for all 10 stations with the front face: the − / + controls move there, the name band, a placeholder properties row, the «▶ رحلة على المنحنى» button. Kenney Nature Kit (CC0) downloaded, ~20 props selected, recoloured to the palette with a shared material set, loaded; CREDITS.md.
+- [ ] **N.2 The traveller** — chibi faceless girl built in code (one skinned mesh, shared geometry), joint hierarchy, all 10 poses with 0.4 s blending, idle life (breathing, head turns). Shown at every station in its resting pose and resting spot.
+- [ ] **N.3 Scenes for stations 9, 3 and 4** (closest to the photos), signs, parameter-following anchors. → review the look before the rest.
+- [ ] **N.4 Scenes for stations 1, 2, 5, 6, 7, 8 and 10.**
+- [ ] **N.5 The journey** — button + HUD mirror, slope-driven moods, rain cloud and sparkles, mood sounds, emotion tint, every station's ending, auto-play on the first visit.
+- [ ] **N.6 «خواص الدالة» cards** with live values, plus checks.
+- [ ] **N.7 Time of day, performance pass (medium), iPhone memory check**, commit, push, confirm live.
 
 ## Phase G — Final checks and deploy — ⛔ not doing (for now), except deploy (W.2)
 
