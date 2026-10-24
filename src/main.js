@@ -24,6 +24,8 @@ import { setupTimeControls } from './dev/time-controls.js';
 import { setupStartScreen } from './ui/start-screen.js';
 import { setupTouchControls } from './ui/touch-controls.js';
 import { setupStationNav } from './ui/station-nav.js';
+import { exposeDevModules } from './dev/dev-mode.js';
+import { Traveller, POSES } from './traveller.js';
 
 console.info(`[quality] ${quality.level} (${quality.source}, ${quality.device})`);
 applyQuality(document.querySelector('a-scene'));
@@ -34,5 +36,6 @@ setupTimeControls(); // ?time=0.6 | ?time=cycle, keys [ ] (with ?dev)
 setupStartScreen();
 setupTouchControls();
 setupStationNav();
+exposeDevModules({ Traveller, POSES });
 // Arabic text test boards (steps 1.2–1.3b) only with ?text, so they don't block the view
 if (new URLSearchParams(location.search).has('text')) runArabicTest();

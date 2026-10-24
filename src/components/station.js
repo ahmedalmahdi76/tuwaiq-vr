@@ -12,10 +12,16 @@ import { markVisited } from '../visited.js';
 import { playChime, userHasInteracted } from '../sound.js';
 import { stationTheme } from './trail-path.js';
 import { VIEW_SPOT, CURVE, PLINTH, FACE, PANEL_SLOT, curveToLocal } from '../station-layout.js';
+import { Traveller } from '../traveller.js';
+import { RESTING } from '../nature-scenes.js';
+import { loadProps, createPropInstances, disposePropInstances } from '../props.js';
 
 export { VIEW_SPOT, CURVE, PLINTH, FACE, PANEL_SLOT, curveToLocal };
 
 const LABELS_WITHIN = 40;
+const ANIMATE_WITHIN = 30; // only nearby stations animate the traveller
+const RIBBON_TOP = 0.024; // she sits / stands on the top edge of the light ribbon
+const TRAVELLER_FRONT = 0.03; // a little in front of the ribbon plane
 const MORPH_TIME = 0.3; // seconds
 const VISIT_RADIUS = 6; // metres from the station point
 const GLOW_TIME = 1.5; // seconds of extra glow on the first visit
@@ -89,6 +95,23 @@ AFRAME.registerComponent('station', {
     }, this.plinthEl);
     this.controlsEl.setAttribute('param-controls', '');
 
+    // The traveller (Phase N): resting pose at the station's resting spot
+    this.resting = RESTING[n];
+    this.traveller = new Traveller({ seed: n });
+    this.traveller.setPose(this.resting.pose, { instant: true });
+    this.traveller.object.rotation.y = THREE.MathUtils.degToRad(this.resting.yaw || 0);
+    this.el.object3D.add(this.traveller.object);
+    this.placeTraveller(this.params);
+    this.traveller.update(0);
+    if (this.resting.seat) {
+      loadProps().then(() => {
+        if (!this.el.parentNode) return;
+        const p = this.traveller.object.position;
+        this.seat = createPropInstances([{ name: this.resting.seat.model, x: p.x, y: CURVE.bottom, z: p.z, scale: this.resting.seat.scale }]);
+        this.el.object3D.add(this.seat);
+      });
+    }
+
     this.shown = { ...this.params }; // what the curve currently shows (eases toward this.params)
     this.morph = null;
     this.nextCheck = 0;
@@ -110,8 +133,10 @@ AFRAME.registerComponent('station', {
       const k = m.t * m.t * (3 - 2 * m.t);
       for (const name of Object.keys(m.to)) this.shown[name] = m.from[name] + (m.to[name] - m.from[name]) * k;
       this.curve.update(this.shown);
+      this.placeTraveller(this.shown);
       if (m.t >= 1) this.morph = null;
     }
+    if (this.distance !== undefined && this.distance < ANIMATE_WITHIN) this.traveller.update(Math.min(delta, 100) / 1000);
     if (time < this.nextCheck) return;
     this.nextCheck = time + 150;
     // Hide the small axis numbers when far away (fewer draw calls; unreadable anyway)
@@ -128,6 +153,22 @@ AFRAME.registerComponent('station', {
       playChime(this.data.number - 1);
       this.glowT = 0;
     }
+  },
+
+  /** Put the traveller at her resting spot: on the ribbon at (x, f(x)), or on the plinth top. */
+  placeTraveller(params) {
+    const r = this.resting;
+    const o = this.traveller.object.position;
+    if (r.on === 'plinth') {
+      curveToLocal(this.def, r.x, 0, o);
+      o.y = CURVE.bottom + (r.seat?.height || 0);
+      o.z = CURVE.z + 0.12;
+      return;
+    }
+    const y = THREE.MathUtils.clamp(this.def.f(r.x, params), Y_WINDOW[0], Y_WINDOW[1]);
+    curveToLocal(this.def, r.x, y, o);
+    o.y += RIBBON_TOP;
+    o.z += TRAVELLER_FRONT;
   },
 
   updateFormula() {
@@ -156,6 +197,8 @@ AFRAME.registerComponent('station', {
   },
 
   remove() {
+    this.traveller.dispose();
+    if (this.seat) disposePropInstances(this.seat);
     this.el.sceneEl.removeEventListener('timeofday', this.onTime);
     this.el.removeObject3D('curve');
     this.curve.dispose();
