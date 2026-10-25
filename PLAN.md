@@ -189,7 +189,7 @@ Every station becomes a living diorama like the team's physical models (referenc
 
 - [x] **N.1 Plinths + asset pipeline** — plinths for all 10 stations with the front face: the − / + controls move there, the name band, a placeholder properties row, the «▶ رحلة على المنحنى» button. Kenney Nature Kit (CC0) downloaded, ~20 props selected, recoloured to the palette with a shared material set, loaded; CREDITS.md.
 - [x] **N.2 The traveller** — chibi faceless girl built in code (one skinned mesh, shared geometry), joint hierarchy, all 10 poses with 0.4 s blending, idle life (breathing, head turns). Shown at every station in its resting pose and resting spot.
-- [ ] **N.3 Scenes for stations 9, 3 and 4** (closest to the photos), signs, parameter-following anchors. → review the look before the rest.
+- [x] **N.3 Scenes for stations 9, 3 and 4** (closest to the photos), signs, parameter-following anchors. → review the look before the rest.
 - [ ] **N.4 Scenes for stations 1, 2, 5, 6, 7, 8 and 10.**
 - [ ] **N.5 The journey** — button + HUD mirror, slope-driven moods, rain cloud and sparkles, mood sounds, emotion tint, every station's ending, auto-play on the first visit.
 - [ ] **N.6 «خواص الدالة» cards** with live values, plus checks.

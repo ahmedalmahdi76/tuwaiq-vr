@@ -4,7 +4,7 @@ import { fileURLToPath } from 'node:url';
 import {
   TITLE, WELCOME, AUTHOR_CREDIT, INTRO, STATIONS, UI, MOVE_HINTS, visitedText,
 } from '../src/content.js';
-import { JOURNEY_LABEL, PROPERTY_TITLES, PROPERTIES_HEADING } from '../src/nature-content.js';
+import { JOURNEY_LABEL, PROPERTY_TITLES, PROPERTIES_HEADING, SIGNS } from '../src/nature-content.js';
 
 const briefPath = fileURLToPath(new URL('../PROJECT_BRIEF.md', import.meta.url));
 const brief = readFileSync(briefPath, 'utf8').replace(/\r/g, '');
@@ -113,6 +113,9 @@ function inNature(label, actual) {
 }
 inNature('JOURNEY_LABEL', `«${JOURNEY_LABEL}»`);
 inNature('PROPERTIES_HEADING', `«${PROPERTIES_HEADING}»`);
+for (const [n, signs] of Object.entries(SIGNS)) {
+  for (const [where, text] of Object.entries(signs)) inNature(`sign ${n} ${where}`, `«${text}»`);
+}
 const propertiesTable = nature.slice(nature.indexOf('## 6.'), nature.indexOf('## 7.'));
 for (const [n, titles] of Object.entries(PROPERTY_TITLES)) {
   const row = propertiesTable.split('\n').find((l) => l.startsWith(`| ${n} |`)) || '';

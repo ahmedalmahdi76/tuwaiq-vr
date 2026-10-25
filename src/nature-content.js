@@ -20,3 +20,13 @@ export const PROPERTY_TITLES = {
 
 /** Heading of the properties row (§2, §6). */
 export const PROPERTIES_HEADING = 'خواص الدالة';
+
+/**
+ * Sign cards (§5), exactly as given. Each « · » separates words that the card shows on their own
+ * line (like the photos); the text itself is unchanged.
+ */
+export const SIGNS = {
+  3: { low: 'خطوة أولى', high: 'اتجاه وهدف' },
+  4: { left: 'ثبات · استقرار · طمأنينة', note: 'قيمة ثابتة لا تتغير' },
+  9: { left: 'حزن · تراجع', vertex: 'نقطة التحوّل · تأمل · إعادة بناء', right: 'أمل · نهوض · بداية جديدة' },
+};

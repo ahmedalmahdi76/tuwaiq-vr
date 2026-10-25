@@ -14,12 +14,15 @@ import { stationTheme } from './trail-path.js';
 import { VIEW_SPOT, CURVE, PLINTH, FACE, PANEL_SLOT, curveToLocal, originYOf } from '../station-layout.js';
 import { Traveller } from '../traveller.js';
 import { RESTING } from '../nature-scenes.js';
-import { loadProps, createPropInstances, disposePropInstances } from '../props.js';
+import { loadProps } from '../props.js';
+import { createScene, RIBBON_TINT } from '../scenes/scenes.js';
 
 export { VIEW_SPOT, CURVE, PLINTH, FACE, PANEL_SLOT, curveToLocal };
 
 const LABELS_WITHIN = 40;
-const ANIMATE_WITHIN = 30; // only nearby stations animate the traveller
+const ANIMATE_WITHIN = 30; // only nearby stations animate the traveller and the scene
+const SCENE_CREATE_AT = 45; // the diorama scene loads with the panel…
+const SCENE_FREE_AT = 55; // …and is freed with it
 const RIBBON_TOP = 0.024; // she sits / stands on the top edge of the light ribbon
 const TRAVELLER_FRONT = 0.03; // a little in front of the ribbon plane
 const MORPH_TIME = 0.3; // seconds
@@ -103,14 +106,23 @@ AFRAME.registerComponent('station', {
     this.el.object3D.add(this.traveller.object);
     this.placeTraveller(this.params);
     this.traveller.update(0);
-    if (this.resting.seat) {
-      loadProps().then(() => {
-        if (!this.el.parentNode) return;
-        const p = this.traveller.object.position;
-        this.seat = createPropInstances([{ name: this.resting.seat.model, x: p.x, y: CURVE.bottom, z: p.z, scale: this.resting.seat.scale }]);
-        this.el.object3D.add(this.seat);
-      });
-    }
+
+    // The diorama scene (Phase N, §5): built when the player is near (see tick), anchored to the curve
+    this.scene = null;
+    this.sceneCtx = {
+      def: this.def,
+      X: (x) => curveToLocal(this.def, x, 0, new THREE.Vector3()).x,
+      Y: (y) => originYOf(this.def) + y * CURVE.scale,
+      base: CURVE.bottom,
+      z: CURVE.z,
+      window: yWindowOf(this.def),
+      f: (x, p) => this.def.f(x, p),
+    };
+    this.propsReady = false;
+    loadProps().then(() => {
+      this.propsReady = true;
+    });
+    this.curve.setTint(RIBBON_TINT[n] || 0);
 
     this.shown = { ...this.params }; // what the curve currently shows (eases toward this.params)
     this.morph = null;
@@ -133,10 +145,15 @@ AFRAME.registerComponent('station', {
       const k = m.t * m.t * (3 - 2 * m.t);
       for (const name of Object.keys(m.to)) this.shown[name] = m.from[name] + (m.to[name] - m.from[name]) * k;
       this.curve.update(this.shown);
+      this.scene?.update(this.shown);
       this.placeTraveller(this.shown);
       if (m.t >= 1) this.morph = null;
     }
-    if (this.distance !== undefined && this.distance < ANIMATE_WITHIN) this.traveller.update(Math.min(delta, 100) / 1000);
+    if (this.distance !== undefined && this.distance < ANIMATE_WITHIN) {
+      const dt = Math.min(delta, 100) / 1000;
+      this.traveller.update(dt);
+      this.scene?.tick(dt);
+    }
     if (time < this.nextCheck) return;
     this.nextCheck = time + 150;
     // Hide the small axis numbers when far away (fewer draw calls; unreadable anyway)
@@ -146,6 +163,8 @@ AFRAME.registerComponent('station', {
     this.el.object3D.getWorldPosition(selfPos);
     this.distance = Math.hypot(camPos.x - selfPos.x, camPos.z - selfPos.z);
     this.curve.setLabelsVisible(this.distance < LABELS_WITHIN);
+    if (!this.scene && this.propsReady && this.distance < SCENE_CREATE_AT) this.buildScene();
+    else if (this.scene && this.distance > SCENE_FREE_AT) this.freeScene();
     // The visited moment: once per station per page load. Not before the first key / click / tap:
     // a ?station= link starts inside the radius, and the chime could not play yet. If the visitor is
     // still here when they first interact, the full moment plays then.
@@ -162,21 +181,45 @@ AFRAME.registerComponent('station', {
     this.traveller.wave(Math.atan2(local.x, local.z));
   },
 
-  /** Put the traveller at her resting spot: on the ribbon at (x, f(x)), or on the plinth top. */
+  buildScene() {
+    this.scene = createScene(this.data.number, this.sceneCtx);
+    if (!this.scene) return;
+    this.scene.update(this.shown);
+    this.el.object3D.add(this.scene.group);
+    this.placeTraveller(this.shown);
+  },
+
+  freeScene() {
+    this.el.object3D.remove(this.scene.group);
+    this.scene.dispose();
+    this.scene = null;
+  },
+
+  /**
+   * Put the traveller at her resting spot. With a scene, the scene decides (it knows where its rocks
+   * and seats are); otherwise RESTING: on the ribbon at (x, f(x)), or on the plinth top.
+   */
   placeTraveller(params) {
-    const r = this.resting;
+    const r = this.scene?.resting(params) || this.restingFallback(params);
     const o = this.traveller.object.position;
-    if (r.on === 'plinth') {
+    if (r.pose !== this.traveller.pose) this.traveller.setPose(r.pose);
+    this.traveller.object.rotation.y = THREE.MathUtils.degToRad(r.yaw || 0);
+    if (r.localY !== undefined) {
       curveToLocal(this.def, r.x, 0, o);
-      o.y = CURVE.bottom + (r.seat?.height || 0);
-      o.z = CURVE.z + 0.12;
+      o.y = r.localY;
+      o.z = CURVE.z + (r.z ?? 0.12);
       return;
     }
-    const [y0, y1] = yWindowOf(this.def);
-    const y = THREE.MathUtils.clamp(this.def.f(r.x, params), y0, y1);
-    curveToLocal(this.def, r.x, y, o);
+    curveToLocal(this.def, r.x, r.y, o);
     o.y += RIBBON_TOP;
     o.z += TRAVELLER_FRONT;
+  },
+
+  restingFallback(params) {
+    const r = this.resting;
+    if (r.on === 'plinth') return { ...r, localY: CURVE.bottom + (r.seat?.height || 0) };
+    const [y0, y1] = yWindowOf(this.def);
+    return { ...r, y: THREE.MathUtils.clamp(this.def.f(r.x, params), y0, y1) };
   },
 
   updateFormula() {
@@ -206,7 +249,7 @@ AFRAME.registerComponent('station', {
 
   remove() {
     this.traveller.dispose();
-    if (this.seat) disposePropInstances(this.seat);
+    if (this.scene) this.freeScene();
     this.el.sceneEl.removeEventListener('timeofday', this.onTime);
     this.el.removeObject3D('curve');
     this.curve.dispose();

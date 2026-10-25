@@ -19,11 +19,23 @@ const AXIS_WIDTH = 0.012;
 const TICK = 0.09;
 const CREAM = '#FFF4E6';
 const DOT_R = 0.045;
+const WHITE = new THREE.Color('#FFFFFF');
+
+// Emotion tint (NATURE_SCENES.md §4, §5 station 9): falling parts lean blue, the turn purple,
+// rising parts pink. Colour per point from the slope in curve units.
+const TINT = { fall: new THREE.Color('#4F86E8'), turn: new THREE.Color('#9A63D8'), rise: new THREE.Color('#EE5C9B') };
+function slopeTint(slope) {
+  const s = Math.tanh(slope * 1.3);
+  return s < 0 ? TINT.turn.clone().lerp(TINT.fall, -s) : TINT.turn.clone().lerp(TINT.rise, s);
+}
 
 const ribbonVertex = /* glsl */ `
+  attribute vec3 tint;
   varying vec2 vUv;
+  varying vec3 vTint;
   void main() {
     vUv = uv;
+    vTint = tint;
     gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
   }
 `;
@@ -32,10 +44,13 @@ const coreFragment = /* glsl */ `
   uniform vec3 uAccent;
   uniform vec3 uCore;
   uniform float uBoost;
+  uniform float uTint;
   varying vec2 vUv;
+  varying vec3 vTint;
   void main() {
     float v = abs(vUv.y * 2.0 - 1.0);
-    vec3 col = mix(uCore, uAccent, smoothstep(0.1, 0.75, v));
+    vec3 accent = mix(uAccent, vTint, uTint);
+    vec3 col = mix(uCore, accent, smoothstep(0.1, 0.75, v));
     col *= 1.0 + 0.5 * uBoost;
     float alpha = 1.0 - smoothstep(0.8, 1.0, v); // soft edge, no jaggies
     gl_FragColor = vec4(col, alpha);
@@ -47,25 +62,28 @@ const haloFragment = /* glsl */ `
   uniform vec3 uAccent;
   uniform float uStrength;
   uniform float uBoost;
+  uniform float uTint;
   varying vec2 vUv;
+  varying vec3 vTint;
   void main() {
     float v = abs(vUv.y * 2.0 - 1.0);
     float glow = exp(-v * v * 5.0) * (1.0 - v);
-    gl_FragColor = vec4(uAccent * glow * (uStrength + 0.9 * uBoost), 1.0);
+    gl_FragColor = vec4(mix(uAccent, vTint, uTint) * glow * (uStrength + 0.9 * uBoost), 1.0);
     #include <colorspace_fragment>
   }
 `;
 
 /**
  * Ribbon strips along polylines in the local xy plane (z fixed), merged into one geometry.
- * uv.x = distance along, uv.y = 0 / 1 across.
+ * uv.x = distance along, uv.y = 0 / 1 across. tints (optional): a THREE.Color per point (emotion tint).
  */
-function ribbonGeometry(polylines, width, z) {
+function ribbonGeometry(polylines, width, z, tints = null) {
   const positions = [];
   const uvs = [];
+  const colors = [];
   const index = [];
-  for (const pts of polylines) {
-    if (pts.length < 2) continue;
+  polylines.forEach((pts, pi) => {
+    if (pts.length < 2) return;
     const base = positions.length / 3;
     let s = 0;
     pts.forEach((p, i) => {
@@ -81,15 +99,18 @@ function ribbonGeometry(polylines, width, z) {
       const ny = tx * (width / 2);
       positions.push(p.x - nx, p.y - ny, z, p.x + nx, p.y + ny, z);
       uvs.push(s, 0, s, 1);
+      const c = tints ? tints[pi][i] : WHITE;
+      colors.push(c.r, c.g, c.b, c.r, c.g, c.b);
       if (i > 0) {
         const r = base + (i - 1) * 2;
         index.push(r, r + 2, r + 1, r + 1, r + 2, r + 3);
       }
     });
-  }
+  });
   const g = new THREE.BufferGeometry();
   g.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
   g.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
+  g.setAttribute('tint', new THREE.Float32BufferAttribute(colors, 3));
   g.setIndex(index);
   return g;
 }
@@ -123,7 +144,7 @@ export class LightCurve {
     this.coreMaterial = new THREE.ShaderMaterial({
       vertexShader: ribbonVertex,
       fragmentShader: coreFragment,
-      uniforms: { uAccent: { value: accent }, uCore: { value: new THREE.Color('#FFF8F2') }, uBoost: { value: 0 } },
+      uniforms: { uAccent: { value: accent }, uCore: { value: new THREE.Color('#FFF8F2') }, uBoost: { value: 0 }, uTint: { value: 0 } },
       transparent: true,
       depthWrite: false,
       side: THREE.DoubleSide,
@@ -131,7 +152,7 @@ export class LightCurve {
     this.haloMaterial = new THREE.ShaderMaterial({
       vertexShader: ribbonVertex,
       fragmentShader: haloFragment,
-      uniforms: { uAccent: { value: accent }, uStrength: { value: 0.55 }, uBoost: { value: 0 } },
+      uniforms: { uAccent: { value: accent }, uStrength: { value: 0.55 }, uBoost: { value: 0 }, uTint: { value: 0 } },
       transparent: true,
       depthWrite: false,
       blending: THREE.AdditiveBlending,
@@ -231,13 +252,20 @@ export class LightCurve {
 
   /** Rebuild the ribbon (and step dots) for new parameters. */
   update(params) {
-    const pieces = samplePieces(this.def, params).map((piece) => piece.map((p) => this.local(p.x, p.y)));
+    const raw = samplePieces(this.def, params);
+    const pieces = raw.map((piece) => piece.map((p) => this.local(p.x, p.y)));
+    // Slope at each point (curve units), for the emotion tint
+    const tints = raw.map((piece) => piece.map((p, i) => {
+      const a = piece[Math.max(0, i - 1)];
+      const b = piece[Math.min(piece.length - 1, i + 1)];
+      return slopeTint((b.y - a.y) / (b.x - a.x || 1e-6));
+    }));
     this.core.geometry.dispose();
     this.halo.geometry.dispose();
     this.edge.geometry.dispose();
-    this.core.geometry = ribbonGeometry(pieces, CORE_WIDTH, this.z);
+    this.core.geometry = ribbonGeometry(pieces, CORE_WIDTH, this.z, tints);
     this.edge.geometry = ribbonGeometry(pieces, OUTLINE_WIDTH, this.z - 0.002);
-    this.halo.geometry = ribbonGeometry(pieces, HALO_WIDTH, this.z - 0.004);
+    this.halo.geometry = ribbonGeometry(pieces, HALO_WIDTH, this.z - 0.004, tints);
     this.updateDots(pieces);
   }
 
@@ -266,6 +294,12 @@ export class LightCurve {
       disc.renderOrder = 9;
       this.dots.add(disc);
     }
+  }
+
+  /** Emotion tint strength: 0 = plain station accent, 1 = fully blue → purple → pink by slope. */
+  setTint(amount) {
+    this.coreMaterial.uniforms.uTint.value = amount;
+    this.haloMaterial.uniforms.uTint.value = amount;
   }
 
   /** 0 = normal, 1 = extra bright (visited moment). */
