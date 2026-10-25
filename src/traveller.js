@@ -1,4 +1,4 @@
-// The traveller (NATURE_SCENES.md §3): a small faceless chibi girl, ≈0.45 m tall, built in code from
+// The traveller (NATURE_SCENES.md §3): a small faceless chibi girl, 0.65 m tall, built in code from
 // soft primitives. Every part is rigidly bound to one joint of a simple skeleton, and all parts are
 // merged into ONE skinned mesh with vertex colours: 1 draw call, ≈2.5k triangles. The geometry and
 // material are shared by every station; each Traveller only owns its skeleton.
@@ -234,6 +234,9 @@ export const POSES = {
 // Poses where she is not moving: these get idle life (breathing, head turns)
 const IDLE_POSES = new Set(['stand', 'sitCalm', 'sitHug', 'kneel', 'hold', 'reachUp']);
 const BLEND_TIME = 0.4;
+// The model is built 0.45 m tall (1 curve unit); the owner asked for 0.65 m, same proportions.
+export const TRAVELLER_SCALE = 0.65 / 0.45;
+const WAVE_TIME = 2.6; // seconds: turn the head, wave, settle back
 const D2R = Math.PI / 180;
 
 const euler = new THREE.Euler();
@@ -256,7 +259,10 @@ export class Traveller {
     this.mesh.updateMatrixWorld(true);
     this.mesh.bind(new THREE.Skeleton(list));
     this.object = new THREE.Group();
+    this.object.scale.setScalar(TRAVELLER_SCALE);
     this.object.add(this.mesh);
+    this.waveT = null;
+    this.waveYaw = 0;
 
     this.pose = 'stand';
     this.from = null; // snapshot when blending
@@ -321,6 +327,36 @@ export class Traveller {
       this.bones.chest.scale.setScalar(1);
       this.headYaw *= 0.9;
     }
+    if (this.waveT !== null) this.applyWave(dt);
+  }
+
+  /**
+   * A small wave toward the player (the station's visited moment): she turns her head toward
+   * `yaw` (radians in her own frame, 0 = straight ahead) and waves her right hand, layered on top
+   * of whatever pose she is in, then settles back.
+   */
+  wave(yaw) {
+    this.waveT = 0;
+    this.waveYaw = THREE.MathUtils.clamp(yaw, -1.2, 1.2);
+  }
+
+  applyWave(dt) {
+    this.waveT += dt;
+    const t = this.waveT;
+    if (t >= WAVE_TIME) {
+      this.waveT = null;
+      return;
+    }
+    // Ease in over 0.35 s, hold, ease out over the last 0.5 s
+    const e = Math.min(1, t / 0.35, (WAVE_TIME - t) / 0.5);
+    const k = e * e * (3 - 2 * e);
+    this.bones.head.rotateY(this.waveYaw * 0.8 * k - this.headYaw * k);
+    this.bones.head.rotateX(-0.15 * k);
+    // Right arm up and out, forearm waving
+    qTarget.setFromEuler(euler.set(-125 * D2R, 0, -45 * D2R, 'XYZ'));
+    this.bones.upperArmR.quaternion.slerp(qTarget, k);
+    qTarget.setFromEuler(euler.set(-25 * D2R, 0, (-15 + 28 * Math.sin(t * 11)) * D2R, 'XYZ'));
+    this.bones.lowerArmR.quaternion.slerp(qTarget, k);
   }
 
   dispose() {

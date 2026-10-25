@@ -6,7 +6,14 @@
 // so nothing shoots off. Breaks: 1/x stops 0.05 before its asymptote on both sides; the floor
 // function is drawn as one separate piece per step.
 
-export const Y_WINDOW = [-3, 4];
+export const Y_WINDOW = [-3, 4]; // the widest window (default)
+
+// Per-station window bottom (= the diorama plinth top), so dioramas look like the photos.
+// The top of every window stays at 4. Curves are cut at both edges.
+const Y_BOTTOM = { 1: -0.5, 2: -0.5, 3: -3, 4: -0.5, 5: -2, 6: -0.5, 7: -3, 8: -3, 9: -1, 10: -3 };
+
+/** The y window of a station's curve: [bottom, top]. */
+export const yWindowOf = (def) => [Y_BOTTOM[def.number] ?? Y_WINDOW[0], Y_WINDOW[1]];
 const WINDOW = [-3, 3];
 const WINDOW_POSITIVE = [0, 6]; // shown shifted: x = 3 sits at the centre
 
@@ -179,7 +186,7 @@ export function paramLabel(param, value) {
  */
 export function samplePieces(def, params, samples = 240) {
   const [x0, x1] = def.window;
-  const [yMin, yMax] = Y_WINDOW;
+  const [yMin, yMax] = yWindowOf(def);
   const gap = def.gap ?? 0;
   // Split the window at the break points
   const cuts = (def.breaks ? def.breaks(params) : []).filter((b) => b > x0 && b < x1);
@@ -203,11 +210,11 @@ export function samplePieces(def, params, samples = 240) {
       const inside = Number.isFinite(y) && y >= yMin && y <= yMax;
       if (inside) {
         // Entering the window: start exactly on its edge
-        if (!current.length && prev && Number.isFinite(prev.y)) current.push(edgePoint(prev, { x, y }));
+        if (!current.length && prev && Number.isFinite(prev.y)) current.push(edgePoint(prev, { x, y }, yMin, yMax));
         current.push({ x, y });
       } else if (current.length) {
         // Leaving the window: end exactly on its edge
-        if (Number.isFinite(y)) current.push(edgePoint(current[current.length - 1], { x, y }));
+        if (Number.isFinite(y)) current.push(edgePoint(current[current.length - 1], { x, y }, yMin, yMax));
         pieces.push(current);
         current = [];
       }
@@ -219,8 +226,7 @@ export function samplePieces(def, params, samples = 240) {
 }
 
 /** Point where the segment a→b crosses the y window's edge (a inside, b outside, or reverse). */
-function edgePoint(a, b) {
-  const [yMin, yMax] = Y_WINDOW;
+function edgePoint(a, b, yMin, yMax) {
   const outside = b.y > yMax || b.y < yMin ? b : a;
   const edge = outside.y > yMax ? yMax : yMin;
   const t = (edge - a.y) / (b.y - a.y);

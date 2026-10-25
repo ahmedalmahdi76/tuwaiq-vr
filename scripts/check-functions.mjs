@@ -1,7 +1,7 @@
 // npm run check:functions — sample values, parameter ranges and curve pieces for all 10 stations.
 import { STATIONS } from '../src/content.js';
 import {
-  FUNCTIONS, Y_WINDOW, allowedValues, clampParam, stepParam, defaultParams, paramLabel, samplePieces,
+  FUNCTIONS, yWindowOf, allowedValues, clampParam, stepParam, defaultParams, paramLabel, samplePieces,
 } from '../src/functions.js';
 
 let failures = 0;
@@ -71,7 +71,8 @@ for (const def of FUNCTIONS) {
     }
     for (const piece of pieces) {
       for (const pt of piece) {
-        if (!Number.isFinite(pt.x) || !Number.isFinite(pt.y) || pt.y < Y_WINDOW[0] - 1e-9 || pt.y > Y_WINDOW[1] + 1e-9) {
+        const [w0, w1] = yWindowOf(def);
+        if (!Number.isFinite(pt.x) || !Number.isFinite(pt.y) || pt.y < w0 - 1e-9 || pt.y > w1 + 1e-9) {
           failures++;
           console.error(`✘ station ${def.number}: bad point ${JSON.stringify(pt)} for ${JSON.stringify(combo)}`);
           break;
@@ -92,6 +93,38 @@ expect('1/x: two branches', rational.length, 2);
 const nearest = Math.min(...rational.flat().map((q) => Math.abs(q.x)));
 expect('1/x: stops ≥ 0.05 before the asymptote (and cut at |y| ≤ 4)', nearest >= 0.05 - 1e-9, true);
 expect('floor: 6 separate steps in −3…3', samplePieces(FUNCTIONS[9], defaultParams(FUNCTIONS[9])).length, 6);
+
+// Every parameter combination: the curve stays inside its station's window. Combinations whose
+// whole curve lies outside the window (only expected at station 9: a < 0 with a low c, below the
+// plinth at −1) are allowed but reported.
+console.log('\nall parameter combinations:');
+for (const def of FUNCTIONS) {
+  let total = 0;
+  let hidden = 0;
+  const [w0, w1] = yWindowOf(def);
+  const visit = (i, p) => {
+    if (i === def.params.length) {
+      total++;
+      const pieces = samplePieces(def, p);
+      if (!pieces.length) hidden++;
+      for (const pt of pieces.flat()) {
+        if (pt.y < w0 - 1e-9 || pt.y > w1 + 1e-9) {
+          failures++;
+          console.error(`✘ station ${def.number}: point outside the window for ${JSON.stringify(p)}`);
+          return;
+        }
+      }
+      return;
+    }
+    for (const v of allowedValues(def.params[i])) visit(i + 1, { ...p, [def.params[i].name]: v });
+  };
+  visit(0, {});
+  if (hidden && def.number !== 9) {
+    failures++;
+    console.error(`✘ station ${def.number}: ${hidden} combinations hide the whole curve`);
+  }
+  console.log(`  ${String(def.number).padStart(2)}  window ${w0}…${w1}  ${total} combinations${hidden ? `, ${hidden} entirely below the plinth (allowed)` : ''}`);
+}
 
 // Labels at a few settings
 console.log('\nlabels:');

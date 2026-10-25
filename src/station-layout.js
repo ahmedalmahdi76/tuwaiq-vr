@@ -4,18 +4,17 @@
 //   - the diorama (plinth + curve) floats slightly left of centre, 4.5 m away, cliff view behind
 //   - the info panel stands slightly right, 3 m away, turned toward the visitor
 import * as THREE from 'three';
-import { windowCentre, Y_WINDOW } from './functions.js';
+import { windowCentre, yWindowOf } from './functions.js';
 
 export const VIEW_SPOT = { x: 0, z: 4 };
 
 // Uniform scale keeps the shapes true (slope 1 = 45°)
 export const CURVE = {
   scale: 0.45, // metres per function unit: 6 units wide → 2.7 m
-  bottom: 1.3, // y = −3 sits 1.3 m above the ground (top, y = 4, at ≈ 4.45 m)
+  bottom: 1.3, // the window bottom (= plinth top) sits 1.3 m above the station point, at every station
   x: -1.4, // centre of the curve, left of the view's centre
   z: -0.5, // 4.5 m from VIEW_SPOT
 };
-CURVE.originY = CURVE.bottom - Y_WINDOW[0] * CURVE.scale; // height of y = 0
 CURVE.halfWidth = 3 * CURVE.scale;
 
 // The diorama plinth (NATURE_SCENES.md §2): top surface exactly at the bottom of the curve window,
@@ -46,7 +45,10 @@ export const PANEL_SLOT = {
   z: VIEW_SPOT.z - Math.cos(PANEL_ANGLE) * 3,
 };
 
+/** Height (station-local) of y = 0 for this station's window: its bottom sits on the plinth top. */
+export const originYOf = (def) => CURVE.bottom - yWindowOf(def)[0] * CURVE.scale;
+
 /** Function coordinates → station-local position. */
 export function curveToLocal(def, x, y, target = new THREE.Vector3()) {
-  return target.set(CURVE.x + (x - windowCentre(def)) * CURVE.scale, CURVE.originY + y * CURVE.scale, CURVE.z);
+  return target.set(CURVE.x + (x - windowCentre(def)) * CURVE.scale, originYOf(def) + y * CURVE.scale, CURVE.z);
 }

@@ -2,11 +2,10 @@
 // the curve stays in its window, above the ground, clear of the controls; and the label matches.
 import { STATIONS_ON_TRAIL } from '../src/trail.js';
 import { terrainHeight } from '../src/terrain.js';
-import { FUNCTIONS, allowedValues, defaultParams, samplePieces, windowCentre, Y_WINDOW } from '../src/functions.js';
+import { FUNCTIONS, allowedValues, defaultParams, samplePieces, windowCentre, yWindowOf } from '../src/functions.js';
 
 // Keep in sync with src/components/station.js
 const CURVE = { scale: 0.45, bottom: 1.3, x: -1.4, z: -0.5 };
-CURVE.originY = CURVE.bottom - Y_WINDOW[0] * CURVE.scale;
 // The diorama plinth (station-layout.js): top at the window bottom, 0.6 m tall, floating
 const PLINTH = { width: 3.0, depth: 0.9, height: 0.6 };
 const CLEARANCE = 0.3; // curve at least this far above the ground
@@ -41,7 +40,7 @@ for (const st of STATIONS_ON_TRAIL) {
     for (const piece of samplePieces(def, p)) {
       for (const pt of piece) {
         const lx = CURVE.x + (pt.x - windowCentre(def)) * CURVE.scale;
-        const ly = CURVE.originY + pt.y * CURVE.scale; // above the station origin
+        const ly = CURVE.bottom + (pt.y - yWindowOf(def)[0]) * CURVE.scale; // above the station origin
         const w = world(lx, CURVE.z);
         const clear = st.y + ly - terrainHeight(w.x, w.z);
         minClear = Math.min(minClear, clear);

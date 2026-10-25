@@ -9,7 +9,7 @@
 import * as THREE from 'three';
 import { Text } from 'troika-three-text';
 import { FONTS } from './fonts.js';
-import { samplePieces, Y_WINDOW } from './functions.js';
+import { samplePieces, yWindowOf } from './functions.js';
 import { applyOutline, dayFactor, deepAccent } from './label-style.js';
 
 const CORE_WIDTH = 0.05;
@@ -163,7 +163,7 @@ export class LightCurve {
 
   buildAxes(accent) {
     const [x0, x1] = this.def.window;
-    const [y0, y1] = Y_WINDOW;
+    const [y0, y1] = yWindowOf(this.def);
     const lines = [
       [this.local(x0, 0), this.local(x1, 0)],
       [this.local(0, y0), this.local(0, y1)],
@@ -204,7 +204,7 @@ export class LightCurve {
       t.position.set(p.x, p.y - 0.07, 0);
       add(t);
     }
-    for (const y of [-2, 2, 4]) {
+    for (const y of [-2, 2, 4].filter((v) => v > y0 && v <= y1)) {
       const p = this.local(0, y);
       const t = makeText(fmtTick(y), 0.09, 'right', 'middle', accent);
       t.position.set(p.x - 0.07, p.y, 0);

@@ -5,13 +5,13 @@
 import AFRAME from 'aframe';
 import * as THREE from 'three';
 import { STATIONS_ON_TRAIL } from '../trail.js';
-import { functionFor, defaultParams, Y_WINDOW, stepParam, clampParam } from '../functions.js';
+import { functionFor, defaultParams, yWindowOf, stepParam, clampParam } from '../functions.js';
 import { LightCurve } from '../light-curve.js';
 import { dayFactor } from '../label-style.js';
 import { markVisited } from '../visited.js';
 import { playChime, userHasInteracted } from '../sound.js';
 import { stationTheme } from './trail-path.js';
-import { VIEW_SPOT, CURVE, PLINTH, FACE, PANEL_SLOT, curveToLocal } from '../station-layout.js';
+import { VIEW_SPOT, CURVE, PLINTH, FACE, PANEL_SLOT, curveToLocal, originYOf } from '../station-layout.js';
 import { Traveller } from '../traveller.js';
 import { RESTING } from '../nature-scenes.js';
 import { loadProps, createPropInstances, disposePropInstances } from '../props.js';
@@ -72,7 +72,7 @@ AFRAME.registerComponent('station', {
     };
     this.el.sceneEl.addEventListener('timeofday', this.onTime);
     this.formula = el('a-entity', {
-      position: `${CURVE.x} ${CURVE.originY + Y_WINDOW[1] * CURVE.scale + 0.32} ${CURVE.z}`,
+      position: `${CURVE.x} ${originYOf(this.def) + yWindowOf(this.def)[1] * CURVE.scale + 0.32} ${CURVE.z}`,
     }, this.el);
     this.updateFormula();
 
@@ -152,7 +152,14 @@ AFRAME.registerComponent('station', {
     if (this.distance < VISIT_RADIUS && userHasInteracted() && markVisited(this.data.number)) {
       playChime(this.data.number - 1);
       this.glowT = 0;
+      this.waveAtPlayer(camPos);
     }
+  },
+
+  /** The traveller turns her head toward the player and gives a small wave. */
+  waveAtPlayer(playerWorld) {
+    const local = this.traveller.object.worldToLocal(playerWorld.clone());
+    this.traveller.wave(Math.atan2(local.x, local.z));
   },
 
   /** Put the traveller at her resting spot: on the ribbon at (x, f(x)), or on the plinth top. */
@@ -165,7 +172,8 @@ AFRAME.registerComponent('station', {
       o.z = CURVE.z + 0.12;
       return;
     }
-    const y = THREE.MathUtils.clamp(this.def.f(r.x, params), Y_WINDOW[0], Y_WINDOW[1]);
+    const [y0, y1] = yWindowOf(this.def);
+    const y = THREE.MathUtils.clamp(this.def.f(r.x, params), y0, y1);
     curveToLocal(this.def, r.x, y, o);
     o.y += RIBBON_TOP;
     o.z += TRAVELLER_FRONT;
